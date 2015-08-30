@@ -43,7 +43,7 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
   context["coap.Reset"] = false;
   context["coap.Confirmable"] = true;
   context["iopa.MessageId"] = _nextMessageId();
-  context["coap.Token"] = _nextToken();
+  context["iopa.Token"] = _nextToken();
   return context;
 };
 
@@ -158,7 +158,7 @@ module.exports.sendRequest = function coapFormat_SendRequest(context) {
      reset: context["coap.Reset"],
      ack: context["coap.Ack"],
      messageId: context["iopa.MessageId"],
-     token: context["coap.Token"],
+     token: context["iopa.Token"],
      payload: context["iopa.Body"].toBuffer()
    };
  
@@ -270,7 +270,7 @@ function _parsePacket(packet, context) {
     context["coap.Ack"] = packet.ack;
     context["coap.Reset"] = packet.reset;
     context["coap.Confirmable"] = packet.confirmable;
-    context["coap.Token"] = packet.token;
+    context["iopa.Token"] = packet.token;
     context["coap.Options"] = packet.options;
     context["coap.Code"] = packet.code;
     context["coap.WriteAck"] = _writeAck.bind(this, context.response);
@@ -298,7 +298,7 @@ function _parsePacket(packet, context) {
     response["coap.Ack"] = context["coap.Ack"];
     response["coap.Reset"] = false;
     response["coap.Confirmable"] = false;    // default for piggy-backed responses
-    response["coap.Token"] = context["coap.Token"];
+    response["iopa.Token"] = context["iopa.Token"];
     response["coap.Options"] = undefined; // USE iopa.Headers instead
     Object.defineProperty(response, 'iopa.Method', {
        get: function() { return response["iopa.StatusCode"]; },
@@ -342,7 +342,7 @@ function _coapSendResponse(context, payload) {
      reset: response["coap.Reset"],
      ack: response["coap.Ack"],
      messageId: response["iopa.MessageId"],
-     token: response["coap.Token"],
+     token: response["iopa.Token"],
      payload: payload
    };
    
