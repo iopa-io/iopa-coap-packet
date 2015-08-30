@@ -1,4 +1,3 @@
-/* global [ */
 /*
  * Copyright (c) 2015 Limerun Project Contributors
  * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
@@ -124,6 +123,7 @@ function _createResponseContext(parentContext)
         context["server.LocalAddress"] = parentContext.response["server.LocalAddress"];
         context["server.LocalPort"] = parentContext.response["server.LocalPort"]; 
         context["server.RawStream"] = parentContext.response["server.RawStream"];    
+        context["server.InProcess"] = true;
         context.response["server.TLS"] = parentContext["server.TLS"];    
         context.response["server.RemoteAddress"] = parentContext["server.RemoteAddress"];    
         context.response["server.RemotePort"] = parentContext["server.RemotePort"];    
@@ -367,7 +367,7 @@ function _coapSendResponse(context, payload) {
   packet.options = options;
    
   response["server.ResendOnTimeout"] =  !(response["coap.Ack"] || response["coap.Reset"] || response["coap.Confirmable"] === false);
-    
+   response["server.InProcess"] = true;
   var buf = CoapPacket.generate(packet);
   response["server.RawStream"].write(buf);
   
