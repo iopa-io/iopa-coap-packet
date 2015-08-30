@@ -20,7 +20,7 @@ const util = require('util')
 
 const iopa = require('iopa')
   , UdpServer = require('iopa-udp')
-  , IopaServer = require('iopa-server');
+  , IopaServer = require('iopa-server').ChannelServer;
 
 const CoAPClientChannelParser = require('../middleware/coapClientChannelParser.js')
    , CoAPClientPacketSend  = require('../middleware/coapClientPacketSend.js')
@@ -66,7 +66,6 @@ function CoAPPacketServer(options, appFuncServer, appFuncClient) {
 }
 
 util.inherits(CoAPPacketServer, IopaServer);
-
 
 /* ****************************************************** */
 // PIPELINE SETUP METHODS OVERRIDES
