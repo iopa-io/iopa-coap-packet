@@ -149,7 +149,7 @@ function _createResponseContext(parentContext)
 module.exports.sendRequest = function coapFormat_SendRequest(context) {
   
    
- if (context["iopa.MessageId"] === undefined)
+ if (!context["iopa.MessageId"])
      context["iopa.MessageId"] = _nextMessageId();
   
    var packet = {
@@ -297,8 +297,7 @@ function _parsePacket(packet, context) {
 
     response["coap.Ack"] = context["coap.Ack"];
     response["coap.Reset"] = false;
-    response["coap.Confirmable"] = context["coap.Confirmable"];
-    response["iopa.MessageId"] = context["iopa.MessageId"];
+    response["coap.Confirmable"] = false;    // default for piggy-backed responses
     response["coap.Token"] = context["coap.Token"];
     response["coap.Options"] = undefined; // USE iopa.Headers instead
     Object.defineProperty(response, 'iopa.Method', {
@@ -334,7 +333,7 @@ function _coapSendResponse(context, payload) {
    
     var response = context.response;
     
-    if (response["iopa.MessageId"] === undefined)
+    if (!response["iopa.MessageId"])
      response["iopa.MessageId"] = _nextMessageId();
 
    var packet = {
@@ -347,7 +346,7 @@ function _coapSendResponse(context, payload) {
      payload: payload
    };
    
-   delete response["iopa.MessageId"];
+  // delete response["iopa.MessageId"];
  
    var headers = response["iopa.Headers"];
    var options = [];
@@ -394,7 +393,7 @@ function _writeError(context, errorPayload) {
  * @public
  */
 function _writeAck(context) {
-  if (context["iopa.MessageId"] === undefined)
+  if (!context["iopa.MessageId"])
      context["iopa.MessageId"] = _nextMessageId();
  
     var buf = CoapPacket.generate( {
@@ -405,9 +404,7 @@ function _writeAck(context) {
             , ack: true
             , reset: false
           });
-          
-  delete  context["iopa.MessageId"];
-          
+                   
   context["server.RawStream"].write(buf);
 }
 
