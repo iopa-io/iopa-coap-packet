@@ -54,12 +54,14 @@ function CoAPPacketServer(options, appFuncServer, appFuncClient) {
     options = {};
   }
   
+  this._appFuncClient = appFuncClient;
+  
   /**
     * Call Parent Constructor to ensure the following are created
     *   this.serverPipeline
     *   this.clientPipeline
     */
-  IopaServer.call(this, options, appFuncServer, appFuncClient);
+  IopaServer.call(this, options, appFuncServer);
   
    // INIT UDP SERVER
   this._udp = new UdpServer(options, this.serverPipeline, this.clientPipeline);
@@ -112,6 +114,21 @@ CoAPPacketServer.prototype._clientMessageSendPipelineSetup = function (clientSen
   clientSendApp.properties["app.DefaultApp"] = CoAPClientPacketSend;
 };
 
+
+/**
+ * CLIENT MESSAGE PIPELINE INVOKE
+ * Middleware Called on Each Outbound Client Message Request
+ * 
+ * @method _clientSendInvoke
+ * @this IOPAServer IOPAServer instance
+ * @param context IOPA context dictionary
+ * @param next   IOPA application delegate for the remainder of the pipeline
+ * @protected
+ */
+CoAPPacketServer.prototype._clientSendInvoke = function IOPAServer_clientSendInvoke(context, next) {
+      // Call External AppFunc
+   return this._appFuncClient(context).then(next);
+ };
 
 /* ****************************************************** */
 // OVERRIDE METHODS
