@@ -20,7 +20,7 @@ const util = require('util')
 
 const iopa = require('iopa')
   , UdpServer = require('iopa-udp')
-  , IopaServer = require('iopa-server').ChannelServer;
+  , IopaServer = require('iopa-server');
 
 const CoAPClientChannelParser = require('../middleware/coapClientChannelParser.js')
    , CoAPClientPacketSend  = require('../middleware/coapClientPacketSend.js')
@@ -70,12 +70,26 @@ util.inherits(CoAPPacketServer, IopaServer);
 /* ****************************************************** */
 // PIPELINE SETUP METHODS OVERRIDES
 /**
- * SERVER PIPELINE SETUP
+ * SERVER CHANNEL PIPELINE SETUP
  * @InheritDoc
  */
-CoAPPacketServer.prototype._serverPipelineSetup = function (serverApp) {
+CoAPPacketServer.prototype._serverChannelPipelineSetup = function (serverApp) {
   serverApp.use(CoAPServerChannelParser);
   serverApp.use(iopaMessageCache.Match);
+
+};
+
+/**
+ * SERVER MESSAGE PIPELINE SETUP
+ * Create Middleware Pipeline for Each Server Request Message
+ *
+ * @method _serverMessagePipelineSetup
+ * @app IOPA Application Instance
+ * @returns void
+ * @public MUSTINHERIT
+ */
+CoAPPacketServer.prototype._serverMessagePipelineSetup = function (app) {
+    app.use(iopaMessageCache.Cache);
 };
 
 /**
@@ -97,6 +111,7 @@ CoAPPacketServer.prototype._clientMessageSendPipelineSetup = function (clientSen
   clientSendApp.use(iopaMessageCache.Cache);
   clientSendApp.properties["app.DefaultApp"] = CoAPClientPacketSend;
 };
+
 
 /* ****************************************************** */
 // OVERRIDE METHODS

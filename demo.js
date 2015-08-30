@@ -20,8 +20,11 @@ const iopa = require('iopa')
     , Promise = require('bluebird')
     , util = require('util');
 
+const iopaMessageLogger = require('iopa-common-middleware').MessageLogger
+
 
 var appServer = new iopa.App();
+appServer.use(iopaMessageLogger);
 
 appServer.use(function(context, next){
    context.log.info("[DEMO] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
@@ -36,6 +39,7 @@ appServer.use(function(context, next){
     
     
 var appClient = new iopa.App();
+appClient.use(iopaMessageLogger);
 
 appClient.use(function(context, next){
    context.log.info("[DEMO] CLIENT CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);

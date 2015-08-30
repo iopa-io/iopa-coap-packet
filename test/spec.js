@@ -92,7 +92,6 @@ describe('#CoAP Server()', function() {
     
     it('should respond with state via CoAP', function(done) {
        events.on("data", function(context){
-           context["iopa.Method"].toString().should.equal('GET');
            done();
            });
     });

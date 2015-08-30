@@ -53,20 +53,14 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
   */
 module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelContext, eventType) {
      var rawStream, context;
-        
+     
      if (eventType == "response")
        rawStream = channelContext.response["server.RawStream"]
      else
        rawStream = channelContext["server.RawStream"];
     
       rawStream.on("data", function(chunk){
-        
-        if (eventType == "response")
-           context = _createResponseContext(channelContext);
-        else
-            context = channelContext;
-           
-        var packet = CoapPacket.parse(chunk);
+         var packet = CoapPacket.parse(chunk);
              /*
              *   packet contains:
              *       code   string
@@ -79,12 +73,18 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
              *       payload   buffer
              */
          
-        _parsePacket.call(this, packet, context);
+   
+        if (packet.code > '0.00' && packet.code<'1.00')
+             context = channelContext;
+        else
+           context = _createResponseContext(channelContext);
+       
+            _parsePacket.call(this, packet, context);
        
         if (packet.code > '0.00' && packet.code<'1.00')
-           channelContext["iopa.Events"].emit(eventType, context);  //REQUEST
+            channelContext["iopa.Events"].emit("request", context);  //REQUEST
         else
-           channelContext["iopa.Events"].emit(eventType, context);   //RESPONSE
+           channelContext["iopa.Events"].emit("response", context);   //RESPONSE
           
         context["server.InProcess"] = false;
         
@@ -315,10 +315,11 @@ function _parsePacket(packet, context) {
            
     if (response["iopa.Body"])
     {
-      response["iopa.Body"].on("finish", _coapSendResponse.bind(this, context));
+    //  response["iopa.Body"].on("finish", _coapSendResponse.bind(this, context));
       response["iopa.Body"].on("data", _coapSendResponse.bind(this, context));
     }
-}
+    
+ }
 
 /**
  * Private method to send response packet
@@ -405,7 +406,13 @@ function _writeAck(context) {
             , reset: false
           });
                    
+  var code = context["iopa.StatusCode"];
+  var reason =  context["iopa.ReasonPhrase"]; 
+  context["iopa.StatusCode"] = "0.00";
+  context["iopa.ReasonPhrase"] = helpers.STATUS_CODES[context["iopa.StatusCode"]];
   context["server.RawStream"].write(buf);
+  context["iopa.StatusCode"] = code;
+  context["iopa.ReasonPhrase"] = reason;
 }
 
 // SETUP REQUEST DEFAULTS 
