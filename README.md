@@ -1,13 +1,13 @@
-# [![IOPA](http://iopa.io/iopa.png)](http://iopa.io)<br> iopa-coap
+# [![IOPA](http://iopa.io/iopa.png)](http://iopa.io)<br> iopa-coap-packet
 
-[![Build Status](https://api.shippable.com/projects/TBD/badge?branchName=master)](https://app.shippable.com/projects/TBD) 
+[![Build Status](https://api.shippable.com/projects/55e30b7a1895ca447410e53a/badge?branchName=master)](https://app.shippable.com/projects/55e30b7a1895ca447410e53a) 
 [![IOPA](https://img.shields.io/badge/iopa-middleware-99cc33.svg?style=flat-square)](http://iopa.io)
 [![limerun](https://img.shields.io/badge/limerun-certified-3399cc.svg?style=flat-square)](https://nodei.co/npm/limerun/)
 
 [![NPM](https://nodei.co/npm/iopa-coap-packet.png?downloads=true)](https://nodei.co/npm/iopa-coap-packet/)
 
 ## About
-`iopa-coap-packet` is a lightweight Constrained Application Protocol (CoAP) packet server, based on the Internet of Protocols Association (IOPA) open standard  
+`iopa-coap-packet` is a lightweight Constrained Application Protocol (CoAP) packet transport, based on the Internet of Protocols Association (IOPA) open standard  
 
 It translates CoAP packets to and from standard IOPA format.
 
