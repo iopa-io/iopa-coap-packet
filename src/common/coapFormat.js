@@ -346,8 +346,6 @@ function _coapSendResponse(context, payload) {
      payload: payload
    };
    
-  // delete response["iopa.MessageId"];
- 
    var headers = response["iopa.Headers"];
    var options = [];
  
@@ -371,6 +369,8 @@ function _coapSendResponse(context, payload) {
     
   var buf = CoapPacket.generate(packet);
   response["server.RawStream"].write(buf);
+  
+   delete response["iopa.MessageId"];
 }
 
 /**
