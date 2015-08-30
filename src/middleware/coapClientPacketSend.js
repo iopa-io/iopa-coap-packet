@@ -43,6 +43,8 @@ module.exports = function CoAPClientPacketSend(context) {
 };
 
 function CoAPClientPacketSend_Response(context, resolve, response) {
-    if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0'))
+    if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0')
+      && !(response["coap.Code"] === "0.00" && response["coap.Ack"]))
+    
            resolve(response);
 }
