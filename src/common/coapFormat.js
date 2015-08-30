@@ -273,7 +273,9 @@ function _parsePacket(packet, context) {
     context["coap.Token"] = packet.token;
     context["coap.Options"] = packet.options;
     context["coap.Code"] = packet.code;
-    
+    context["coap.WriteAck"] = _writeAck.bind(this, context.response);
+    context["coap.WriteError"] = _writeError.bind(this, context.response);
+  
     context["iopa.MessageId"] = packet.messageId;
     context["iopa.Body"] =  new iopaStream.BufferStream(packet.payload);
  
@@ -378,8 +380,7 @@ function _coapSendResponse(context, payload) {
  * @function Write500Error
  * @public
  */
-module.exports.Write500Error = function coapFormat_500Error(context, errorPayload) {
-  
+function _writeError(context, errorPayload) {
   
   var buf = CoapPacket.generate({ code: '5.00', payload: errorPayload });
   
@@ -392,7 +393,7 @@ module.exports.Write500Error = function coapFormat_500Error(context, errorPayloa
  * @function GenerateAckToBuffer
  * @public
  */
-module.exports.WriteAck = function coapFormat_GenerateAck(context) {
+function _writeAck(context) {
   if (context["iopa.MessageId"] === undefined)
      context["iopa.MessageId"] = _nextMessageId();
  
