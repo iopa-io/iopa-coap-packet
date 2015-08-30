@@ -47,7 +47,7 @@ CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invo
            context["CoAPServerChannelParser.SessionError"] = reject;
         }); 
  
-    context["iopa.Events"].on("iopa.Complete", function(){
+    context["iopa.Events"].on("iopa.Complete2", function(){
         context["CoAPServerChannelParser.SessionClose"]();
     });
  
