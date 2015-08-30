@@ -36,6 +36,7 @@ function CoAPMessageCreateDefaults(app) {
 
 CoAPMessageCreateDefaults.prototype.invoke = function CoAPMessageCreateDefaults_invoke(context, next){
      context["server.CreateRequest"] = CoAPMessageCreateDefaults_createRequest.bind(this, context["server.CreateRequest"]);
+     context["server.WriteAck"] = CoAPFormat.WriteAck.bind(this, context);
      return next();
 };
 

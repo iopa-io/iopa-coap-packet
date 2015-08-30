@@ -396,7 +396,6 @@ module.exports.WriteAck = function coapFormat_GenerateAck(context) {
   if (context["iopa.MessageId"] === undefined)
      context["iopa.MessageId"] = _nextMessageId();
  
-  
     var buf = CoapPacket.generate( {
               messageId: context["iopa.MessageId"]
             , code: '0.00'

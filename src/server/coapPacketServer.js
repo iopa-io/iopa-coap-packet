@@ -49,7 +49,7 @@ function CoAPPacketServer(options, appFuncServer, appFuncClient) {
     return new CoAPPacketServer(options, appFuncServer, appFuncClient);
     
   if (typeof options === 'function') {
-     appFuncClient = AppFuncServer;
+     appFuncClient = appFuncServer;
     appFuncServer = options;
     options = {};
   }
