@@ -60,11 +60,8 @@ CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invo
     if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0')
       && !(response["coap.Code"] === "0.00" && response["coap.Ack"]))
     {
-        context.log.info("[COAP-CLIENT] RESOLVING " + context["iopa.Seq"] + " with " + response["iopa.Seq"]);
         resolve(response);
-    } else
-        context.log.info("[COAP-CLIENT] NOT RESOLVING " + context["iopa.Seq"] + " with " + response["iopa.Seq"]);
-
+    } 
 
 };
 
