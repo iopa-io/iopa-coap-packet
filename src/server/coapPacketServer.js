@@ -83,12 +83,7 @@ CoAPPacketServer.prototype._serverChannelPipelineSetup = function (serverApp) {
 
 /**
  * SERVER MESSAGE PIPELINE SETUP
- * Create Middleware Pipeline for Each Server Request Message
- *
- * @method _serverMessagePipelineSetup
- * @app IOPA Application Instance
- * @returns void
- * @public MUSTINHERIT
+ * @InheritDoc
  */
 CoAPPacketServer.prototype._serverMessagePipelineSetup = function (app) {
     app.use(iopaMessageCache.Cache);
@@ -172,6 +167,7 @@ CoAPPacketServer.prototype._connect = function CoAPServer_connect(urlStr) {
  * @public
  */
 CoAPPacketServer.prototype._close = function CoAPServer_close() {
+  console.log("SERVER CLOSING");
   return this._udp.close();
 };
 

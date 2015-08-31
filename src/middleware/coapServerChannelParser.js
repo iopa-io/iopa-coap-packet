@@ -47,13 +47,24 @@ CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invo
            context["CoAPServerChannelParser.SessionError"] = reject;
         }); 
  
-    context["iopa.Events"].on("iopa.Complete2", function(){
+    context["iopa.Events"].on("iopa.Complete", function(){
         context["CoAPServerChannelParser.SessionClose"]();
     });
  
     CoAPFormat.inboundParser(context, "request");
     
     return next().then(function(){ return futureClose; });
+
+
+
+    if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0')
+      && !(response["coap.Code"] === "0.00" && response["coap.Ack"]))
+    {
+        context.log.info("[COAP-CLIENT] RESOLVING " + context["iopa.Seq"] + " with " + response["iopa.Seq"]);
+        resolve(response);
+    } else
+        context.log.info("[COAP-CLIENT] NOT RESOLVING " + context["iopa.Seq"] + " with " + response["iopa.Seq"]);
+
 
 };
 

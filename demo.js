@@ -66,12 +66,16 @@ server.listen(process.env.PORT, process.env.IP)
     server.log.info("[DEMO] Server is on port " + server.port );
     return server.connect("coap://127.0.0.1");
   })
-  .then(function(coapClient){
+  .then(function(cl){
+    coapClient = cl;
     var context = coapClient["server.CreateRequest"]("/projector", "GET");
     return context.send();
     })
    .then(function(response){
        server.log.info("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
+       return server.close();
+    }).then(function(){
+       server.log.info("Server Closed");
     })
  ;
     
