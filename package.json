@@ -1,7 +1,7 @@
 {
   "name": "iopa-coap-packet",
   "main": "lib/index.js",
-  "description": "Constrained Application Protocol (CoAP) transport, based on Internet of Protocols Alliance (IOPA) open standard",
+  "description": "Constrained Application Protocol (CoAP) transport, based on Internet of Protocols Alliance (IOPA) specification",
   "author": "iopa <build@iopa.io>",
   "license": "Apache-2.0",
   "maintainers": [

@@ -1,6 +1,6 @@
 # [![IOPA](http://iopa.io/iopa.png)](http://iopa.io)<br> iopa-coap-packet
 
-[![Build Status](https://api.shippable.com/projects/55e30b7a1895ca447410e53a/badge?branchName=master)](https://app.shippable.com/projects/55e30b7a1895ca447410e53a) 
+[![Build Status](https://api.shippable.com/projects/55f72f031895ca4474153dc9/badge?branchName=master)](https://app.shippable.com/projects/55f72f031895ca4474153dc9) 
 [![IOPA](https://img.shields.io/badge/iopa-middleware-99cc33.svg?style=flat-square)](http://iopa.io)
 [![limerun](https://img.shields.io/badge/limerun-certified-3399cc.svg?style=flat-square)](https://nodei.co/npm/limerun/)
 
@@ -76,8 +76,7 @@ server.listen(process.env.PORT, process.env.IP)
     return server.connect("coap://127.0.0.1");
   })
   .then(function(coapClient){
-    var context = coapClient["server.CreateRequest"]("/device", "GET");
-    return context.send();
+    var context = coapClient.send("/device", "GET");
     })
    .then(function(response){
        server.log.info("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
@@ -85,54 +84,6 @@ server.listen(process.env.PORT, process.env.IP)
  ;
 ``` 
 
-### Multicast and UniCast Server Client Example
-``` js
-const iopa = require('iopa')
-    , coap = require('iopa-coap-packet')      
-    , Promise = require('bluebird')
-
-var appServer = new iopa.App();
-
-appServer.use(function(context, next){
-   context.log.info("[DEMO] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
-   
-   if (context["iopa.Method"] === "GET")
-   {
-      context.response["iopa.Body"].end("Hello World");
-   }
-
-   return next();
-    });
-    
-    
-var appClient = new iopa.App();
-
-appClient.use(function(context, next){
-   context.log.info("[DEMO] CLIENT CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
-   return next();
-    });
-                       
-var server = coap.createServer({}, appServer.build(), appClient.build());
-    
-var serverOptions = {
-    "server.LocalPortMulticast" : coap.constants.coapMulticastIPV4
-  , "server.LocalPortReuse" : true
-  , "server.IsGlobalClient" : false
-}
-
-var server = coap.createServer(serverOptions, app.build());
-
-Promise.join( server.listen(process.env.PORT, process.env.IP)).then(function(){
-   server.log.info("Server is on port " + server.port );
-  
-   server.clientCreateRequest('coap://127.0.0.1:' + server.port + '/device', "GET")
-   .then(function(context) {
-    context.response["iopa.Body"].pipe(process.stdout);
-    context["iopa.Body"].end("Hello World");
-   });
-});
-``` 
-  
 ## Roadmap
 
 Adding additional features of the protocol such as Type 2 Blocks, is as simple as adding a new middleware function (10-30 lines of javascript)  
