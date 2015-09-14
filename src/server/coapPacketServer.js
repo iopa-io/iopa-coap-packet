@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +14,27 @@
  * limitations under the License.
  */
  
-const util = require('util')
-  , Promise = require('bluebird');
+const util = require('util');
 
-const iopa = require('iopa')
-  , UdpServer = require('iopa-udp')
-  , IopaServer = require('iopa-server');
+const iopa = require('iopa'),
+  udp = require('iopa-udp'),
+  IopaServer = require('iopa-server');
 
-const CoAPClientChannelParser = require('../middleware/coapClientChannelParser.js')
-   , CoAPClientPacketSend  = require('../middleware/coapClientPacketSend.js')
-   , CoAPMessageCreateDefaults = require('../middleware/coapMessageCreateDefaults.js')
-   , CoAPServerChannelParser = require('../middleware/coapServerChannelParser.js')
-  
-const iopaClientSend = require('iopa-common-middleware').ClientSend
-    , iopaMessageCache = require('iopa-common-middleware').Cache;
+const constants = iopa.constants,
+  IOPA = constants.IOPA,
+  SERVER = constants.SERVER,
+  APPBUILDER = constants.APPBUILDER,
+  COAP = constants.COAP;
 
-var globalClient = null;
+const CoAPClientChannelParser = require('../middleware/coapClientChannelParser.js'),
+  CoAPClientPacketSend = require('../middleware/coapClientPacketSend.js'),
+  CoAPMessageCreateDefaults = require('../middleware/coapMessageCreateDefaults.js'),
+  CoAPServerChannelParser = require('../middleware/coapServerChannelParser.js');
+
+const iopaClientSend = require('iopa-common-middleware').ClientSend,
+  iopaMessageCache = require('iopa-common-middleware').Cache;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /* *********************************************************
  * IOPA CoAP SERVER / CLIENT WITH MIDDLEWARE CONSTRUCTED
@@ -44,27 +48,18 @@ var globalClient = null;
  * @param {appFunc} appFunc  Server callback in IOPA AppFunc format
  * @constructor
  */
-function CoAPPacketServer(options, appFuncServer, appFuncClient) {
-  if (!(this instanceof CoAPPacketServer))
-    return new CoAPPacketServer(options, appFuncServer, appFuncClient);
+function CoAPPacketServer(options, appFunc) {
+   _classCallCheck(this, CoAPPacketServer);
     
   if (typeof options === 'function') {
-     appFuncClient = appFuncServer;
-    appFuncServer = options;
+     appFunc = options;
     options = {};
   }
-  
-  this._appFuncClient = appFuncClient;
-  
-  /**
-    * Call Parent Constructor to ensure the following are created
-    *   this.serverPipeline
-    *   this.clientPipeline
-    */
-  IopaServer.call(this, options, appFuncServer);
+    
+  IopaServer.call(this, options, appFunc);
   
    // INIT UDP SERVER
-  this._udp = new UdpServer(options, this.serverPipeline, this.clientPipeline);
+  this._udp = udp.createServer(options, this.serverChannelPipeline);
 }
 
 util.inherits(CoAPPacketServer, IopaServer);
@@ -75,10 +70,11 @@ util.inherits(CoAPPacketServer, IopaServer);
  * SERVER CHANNEL PIPELINE SETUP
  * @InheritDoc
  */
-CoAPPacketServer.prototype._serverChannelPipelineSetup = function (serverApp) {
-  serverApp.use(CoAPServerChannelParser);
-  serverApp.use(iopaMessageCache.Match);
-
+CoAPPacketServer.prototype._serverChannelPipelineSetup = function (serverChannelApp) {
+  serverChannelApp.use(iopaClientSend);
+  serverChannelApp.use(CoAPMessageCreateDefaults);
+  serverChannelApp.use(CoAPServerChannelParser);
+  serverChannelApp.use(iopaMessageCache.Match);
 };
 
 /**
@@ -86,7 +82,8 @@ CoAPPacketServer.prototype._serverChannelPipelineSetup = function (serverApp) {
  * @InheritDoc
  */
 CoAPPacketServer.prototype._serverMessagePipelineSetup = function (app) {
-    app.use(iopaMessageCache.Cache);
+   app.use(CoAPMessageCreateDefaults);
+   app.use(iopaMessageCache.Cache);
 };
 
 /**
@@ -106,24 +103,8 @@ CoAPPacketServer.prototype._clientConnectPipelineSetup = function (clientConnect
  */
 CoAPPacketServer.prototype._clientMessageSendPipelineSetup = function (clientSendApp) {
   clientSendApp.use(iopaMessageCache.Cache);
-  clientSendApp.properties["app.DefaultApp"] = CoAPClientPacketSend;
+  clientSendApp.properties[APPBUILDER.DefaultApp] = CoAPClientPacketSend;
 };
-
-
-/**
- * CLIENT MESSAGE PIPELINE INVOKE
- * Middleware Called on Each Outbound Client Message Request
- * 
- * @method _clientSendInvoke
- * @this IOPAServer IOPAServer instance
- * @param context IOPA context dictionary
- * @param next   IOPA application delegate for the remainder of the pipeline
- * @protected
- */
-CoAPPacketServer.prototype._clientSendInvoke = function IOPAServer_clientSendInvoke(context, next) {
-      // Call External AppFunc
-   return this._appFuncClient(context).then(next);
- };
 
 /* ****************************************************** */
 // OVERRIDE METHODS

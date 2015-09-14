@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
-  *
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +15,6 @@
  */
  
 const iopa = require('iopa')
-    , Promise = require('bluebird')
     , util = require('util')
     , Events = require('events')
     , coap = require('../index.js');
@@ -42,20 +40,9 @@ describe('#CoAP Server()', function() {
       }, 40);
       return next();
         });
-    
-    var appClient = new iopa.App();
-    
-    appClient.use(function(context, next){
-      context.log.info("[TEST] CLIENT CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
-      return next();
-      });
            
-   var serverOptions = {
-    "server.LocalPortReuse" : true
-  , "server.IsGlobalClient" : false
-    };
                        
-    server = coap.createServer(serverOptions, appServer.build(), appClient.build());
+    server = coap.createServer(appServer.build());
    
       if (!process.env.PORT)
         process.env.PORT = 5683;
@@ -82,8 +69,8 @@ describe('#CoAP Server()', function() {
    });
       
      it('should GET via CoAP', function(done) {  
-        var context = coapClient["server.CreateRequest"]("/projector", "GET");
-        context.send().then(function(response) {
+        coapClient.send("/projector", "GET")
+        .then(function(response) {
            response["iopa.Method"].should.equal('2.05');
            response["iopa.Body"].toString().should.equal('Hello World');
            done();     

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +16,14 @@
 
 // DEPENDENCIES
 
-var util = require('util')
-  , Promise = require('bluebird')
-  , CoAPFormat = require('../common/coapFormat.js');
+const util = require('util'),
+   CoAPFormat = require('../common/coapFormat.js'),
   
+   constants = require('iopa').constants,
+    IOPA = constants.IOPA,
+    SERVER = constants.SERVER,
+    COAP = constants.COAP;
+    
 /**
  *  CoAP IOPA Middleware to convert inbound UDP packets into parsed CoAP requests 
  *
@@ -29,8 +32,8 @@ var util = require('util')
  * @constructor
  */
 function CoAPServerChannelParser(app) {
-    app.properties["server.Capabilities"]["iopa-coap.Version"] = "1.2";
-    app.properties["server.Capabilities"]["iopa-coap.Support"] = {
+    app.properties[SERVER.Capabilities]["iopa-coap.Version"] = "1.2";
+    app.properties[SERVER.Capabilities]["iopa-coap.Support"] = {
        "coap.Version": "RFC 7252"
     };
 }
@@ -40,29 +43,19 @@ function CoAPServerChannelParser(app) {
  * @this context IOPA channelContext dictionary
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
-CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(context, next) {
+CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(channelContext, next) {
     
-    var futureClose = new Promise(function(resolve, reject){
-           context["CoAPServerChannelParser.SessionClose"] = resolve;
-           context["CoAPServerChannelParser.SessionError"] = reject;
-        }); 
- 
-    context["iopa.Events"].on("iopa.Complete", function(){
-        context["CoAPServerChannelParser.SessionClose"]();
+    channelContext[IOPA.Events].on(IOPA.EVENTS.Finish, function(){
+        channelContext["CoAPServerChannelParser.SessionClose"]();
     });
  
-    CoAPFormat.inboundParser(context, "request");
+    CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
     
-    return next().then(function(){ return futureClose; });
-
-
-
-    if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0')
-      && !(response["coap.Code"] === "0.00" && response["coap.Ack"]))
-    {
-        resolve(response);
-    } 
-
+    return next().then(function(){ return new Promise(function(resolve, reject){
+           channelContext["CoAPServerChannelParser.SessionClose"] = resolve;
+           channelContext["CoAPServerChannelParser.SessionError"] = reject;
+        }); 
+    });
 };
 
 module.exports = CoAPServerChannelParser;

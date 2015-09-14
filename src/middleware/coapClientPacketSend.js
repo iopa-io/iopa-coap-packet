@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +14,16 @@
  * limitations under the License.
  */
 
-var Promise = require('bluebird')
-    , util = require('util')
-    , CoAPFormat = require('../common/coapFormat.js')
-  
+// DEPENDENCIES
+
+const util = require('util'),
+    CoAPFormat = require('../common/coapFormat.js'),
+    
+   constants = require('iopa').constants,
+    IOPA = constants.IOPA,
+    SERVER = constants.SERVER,
+    COAP = constants.COAP
+
 /**
  * Parses IOPA request into CoAP packet
  * IOPA Default App in Client Pipeline
@@ -31,20 +36,20 @@ module.exports = function CoAPClientPacketSend(context) {
         CoAPFormat.sendRequest(context);
     }
     catch (err) {
-        context["server.Logger"].error("[COAPCLIENTPACKETSEND] Unable to send CoAP packet " 
-            + context["iopa.Method"] + ": " + err);
+        context[SERVER.Logger].error("[COAPCLIENTPACKETSEND] Unable to send CoAP packet " 
+            + context[IOPA.Method] + ": " + err);
         context =null;
-        return Promise.reject('Unable to parse IOPA Message into CoAP packet');
+        return new Promise(function(resolve, reject){ reject('Unable to parse IOPA Message into CoAP packet');});
     }
  
      return new Promise(function(resolve, reject){
-         context["iopa.Events"].on("response", CoAPClientPacketSend_Response.bind(this, context, resolve));
+         context[IOPA.Events].on(IOPA.EVENTS.Response, CoAPClientPacketSend_Response.bind(this, context, resolve));
      });
 };
 
 function CoAPClientPacketSend_Response(context, resolve, response) {
-    if (!(response["coap.Code"] === "2.05" && response["iopa.Headers"]["Observe"]>'0')
-      && !(response["coap.Code"] === "0.00" && response["coap.Ack"]))
+    if (!(response[COAP.Code] === "2.05" && response[IOPA.Headers]["Observe"]>'0')
+      && !(response[COAP.Code] === "0.00" && response[COAP.Ack]))
      {
         resolve(response);
      } 

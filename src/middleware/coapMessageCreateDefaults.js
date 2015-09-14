@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +14,17 @@
  * limitations under the License.
  */
 
-var Promise = require('bluebird')
-    , util = require('util')
-    , CoAPFormat = require('../common/coapFormat.js')
+// DEPENDENCIES
+const util = require('util'),
+  CoAPFormat = require('../common/coapFormat.js'),
+
+  constants = require('iopa').constants,
+  IOPA = constants.IOPA,
+  SERVER = constants.SERVER,
+  COAP = constants.COAP
+
   
-  /**
+/**
  * CoAP IOPA Middleware to create Default Message Properties in IOPA properties dictionary
  *
  * @class CoAPMessageCreateDefaults
@@ -28,30 +33,28 @@ var Promise = require('bluebird')
  * @public
  */
 function CoAPMessageCreateDefaults(app) {
-      app.properties["server.Capabilities"]["iopa-coap.Version"] = "1.0";
-      app.properties["server.Capabilities"]["iopa-coap.Support"] = {
+      app.properties[SERVER.Capabilities]["iopa-coap.Version"] = "1.0";
+      app.properties[SERVER.Capabilities]["iopa-coap.Support"] = {
         "coap.Version": "RFC 7252"
       };
  }
 
 CoAPMessageCreateDefaults.prototype.invoke = function CoAPMessageCreateDefaults_invoke(context, next){
-     context["server.CreateRequest"] = CoAPMessageCreateDefaults_createRequest.bind(this, context["server.CreateRequest"]);
+     context[SERVER.Fetch] = CoAPMessageCreateDefaults_fetch.bind(this, context[IOPA.Seq], context[SERVER.Fetch]);
      return next();
 };
 
  /**
  * CoAP IOPA Middleware for Client Message Request Defaults
  *
- * @method CoAPMessageCreateDefaults_createRequest
- * @parm {string} path url representation of ://127.0.0.1/hello
- * @parm {string} [method]  request method (e.g. 'GET')
- * @returns context
- * @public
+ * @method CoAPMessageCreateDefaults_fetch
+ * @private
  */
-function CoAPMessageCreateDefaults_createRequest(nextFactory, urlStr, method){
-    var context = nextFactory(urlStr, method);
-    CoAPFormat.defaultContext(context);
-    return context;
+function CoAPMessageCreateDefaults_fetch(id, nextFetch, urlStr, options, pipeline){
+    return nextFetch(urlStr, options, function(context){
+           CoAPFormat.defaultContext(context);
+           return pipeline(context);
+    });
 };
 
 module.exports = CoAPMessageCreateDefaults;

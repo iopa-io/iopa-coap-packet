@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +160,7 @@ registerOption('Observe', function(sequence) {
   } else if (sequence < 256) {
     buf = new Buffer(1)
     buf.writeUInt8(sequence, 0)
-  } else if (sequence >= 256 & sequence < 65535) {
+  } else if (sequence >= 256 && sequence < 65535) {
     buf = new Buffer(2)
     buf.writeUInt16BE(sequence, 0)
   } else {
@@ -186,56 +185,3 @@ registerOption('Observe', function(sequence) {
 
   return result
 })
-
- // COAP_CODES
-module.exports.COAP_CODES = {
-        '0.01': 'GET'
-      , '0.02': 'POST'
-      , '0.03': 'PUT'
-      , '0.04': 'DELETE'
-    }
-
-module.exports.METHOD_CODES = {
-        'GET': '0.01'
-      , 'POST': '0.02'
-      , 'PUT': '0.03'
-      , 'DELETE': '0.04'
-    }
-
-module.exports.STATUS_CODES = {
-    // Empty Message
-    "0.00": "Empty" 
-    
-    // Class 0: Request Methods
-   , "0.01": "GET"
-   , "0.02": "POST"
-   , "0.03": "PUT"
-   , "0.04": "DELETE"
-    
-    // Class 2: Success Responses
-   , "2.01": "Created"
-   , "2.02": "Deleted"
-   , "2.03": "Valid"
-   , "2.04": "Changed"
-   , "2.05": "Content"
-    
-    // Class 4: Client Errors
-   , "4.00": "Bad Request"
-   , "4.01": "Unauthorized"
-   , "4.02": "Bad Option"
-   , "4.03": "Forbidden"
-   , "4.04": "Not Found"
-   , "4.05": "Method Not Allowed"
-   , "4.06": "Not Acceptable"
-   , "4.12": "Precondition Failed"
-   , "4.13": "Request Entity Too Large"
-   , "4.15": "Unsupported Content-Format"
-    
-    // Class 5: Server Errors
-   , "5.00": "Internal Server Error"
-   , "5.01": "Not Implemented"
-   , "5.02": "Bad Gateway"
-   , "5.03": "Service Unavailable"
-   , "5.04": "Gateway Timeout"
-   , "5.05": "Proxying Not Supported"
-}

@@ -7,11 +7,11 @@
 [![NPM](https://nodei.co/npm/iopa-coap-packet.png?downloads=true)](https://nodei.co/npm/iopa-coap-packet/)
 
 ## About
-`iopa-coap-packet` is a lightweight Constrained Application Protocol (CoAP) packet transport, based on the Internet of Protocols Association (IOPA) open standard  
+`iopa-coap-packet` is a lightweight Constrained Application Protocol (CoAP) packet transport, based on the Internet of Protocols Alliance (IOPA) specification  
 
 It translates CoAP packets to and from standard IOPA format.
 
-It is not intended as a standalone CoAP server, as it does not contain the standard protocol logic for acknowledges, observes etc., but can form the basis for one.  See [`iopa-coap`](https://github.com/iopa-source/iopa-coap) for an open-source, standards-based, drop-in replacement for CoAP servers such as [`node-coap`](https://github.com/mcollina/node-coap).   
+It is not intended as a standalone CoAP server, as it does not contain the standard protocol logic for acknowledges, observes etc., but can form the basis for one.  See [`iopa-coap`](https://github.com/iopa-io/iopa-coap) for an open-source, standards-based, drop-in replacement for CoAP servers such as [`node-coap`](https://github.com/mcollina/node-coap).   
 
 `iopa-coap-packet` uses the widely used library ['coap-packet'](https://github.com/mcollina/coap-packet) for protocol formatting.
 

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +14,17 @@
  * limitations under the License.
  */
 
-var Promise = require('bluebird')
-    , util = require('util')
-    , CoAPFormat = require('../common/coapFormat.js')
+// DEPENDENCIES
+   
+const util = require('util')
+    , CoAPFormat = require('../common/coapFormat.js'),
   
-  /**
+  constants = require('iopa').constants,
+    IOPA = constants.IOPA,
+    SERVER = constants.SERVER,
+    COAP = constants.COAP
+
+ /**
  * CoAP IOPA Middleware to convert inbound UDP packets into parsed CoAP responses
  *
  * @class CoAPClientChannelParser
@@ -28,14 +33,14 @@ var Promise = require('bluebird')
  * @public
  */
 function CoAPClientChannelParser(app) {
-    if (!app.properties["server.Capabilities"]["iopa-coap.Version"])
+    if (!app.properties[SERVER.Capabilities]["iopa-coap.Version"])
         throw ("Missing Dependency: CoAP Server/Middleware in Pipeline");
 
-   app.properties["server.Capabilities"]["CoAPClientChannelParser.Version"] = "1.0";
+   app.properties[SERVER.Capabilities]["CoAPClientChannelParser.Version"] = "1.0";
 }
 
 CoAPClientChannelParser.prototype.invoke = function CoAPClientChannelParser_invoke(channelContext, next){
-     CoAPFormat.inboundParser(channelContext, "response");
+     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Response);
      return next();
 };
 

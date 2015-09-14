@@ -1,8 +1,9 @@
 {
   "name": "iopa-coap-packet",
   "main": "lib/index.js",
-  "description": "Constrained Application Protocol (CoAP) transport, based on Internet of Protocols Association (IOPA) open standard",
-  "author": "IOPA",
+  "description": "Constrained Application Protocol (CoAP) transport, based on Internet of Protocols Alliance (IOPA) open standard",
+  "author": "iopa <build@iopa.io>",
+  "license": "Apache-2.0",
   "maintainers": [
     {
       "name": "iopa",
@@ -12,17 +13,16 @@
   "version": "0.1.17",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iopa-source/iopa-coap-packet.git"
+    "url": "https://github.com/iopa-io/iopa-coap-packet.git"
   },
   "dependencies": {
-    "bluebird": "*",
-    "iopa": "*",
-    "iopa-server": "*",
-    "iopa-common-middleware": "*",
-    "iopa-common-stream": "*",
-    "iopa-udp": "*",
-    "coap-packet": "~0.1.12",
-    "lru-cache": "~2.5.0"
+    "coap-packet": "^0.1.12",
+    "iopa": "latest",
+    "iopa-common-middleware": "latest",
+    "iopa-common-stream": "latest",
+    "iopa-server": "latest",
+    "iopa-udp": "latest",
+    "lru-cache": "^2.7.0"
   },
   "keywords": [
     "limerun",
@@ -38,21 +38,17 @@
     "promise",
     "framework"
   ],
-  "licenses": [
-    {
-      "type": "Apache-2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
-  ],
   "engines": {
-    "node": ">= 0.12.0"
+    "node": ">= 4.0"
   },
   "scripts": {
-    "test": "mocha --reporter spec test"
+    "test": "mocha --reporter spec test",
+    "quick": "git add . -A && git commit -m 'dev test' && npm version patch && npm publish",
+    "typings": "tsd reinstall --overwrite --clean --config tools/tsd.json && tsd link"
   },
   "devDependencies": {
-    "mocha": "^2.2.5",
-    "mocha-junit-reporter": "^1.6.1",
-    "should": "^7.0.2"
+    "mocha": "latest",
+    "mocha-junit-reporter": "latest",
+    "should": "latest"
   }
 }

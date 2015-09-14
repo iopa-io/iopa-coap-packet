@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015 Limerun Project Contributors
- * Portions Copyright (c) 2015 Internet of Protocols Assocation (IOPA)
+ * Copyright (c) 2015 Internet of Protocols Alliance (IOPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +17,24 @@
  
 // DEPENDENCIES
 
- const Promise = require('bluebird')
-    , CoapPacket = require('coap-packet')
+ const coapPacket = require('coap-packet')
     , util = require('util')
     , iopaStream = require('iopa-common-stream')
-    , iopaContextFactory = require('iopa').context.factory
+    , iopaContextFactory = require('iopa').factory
     , helpers = require('./helpers.js')
     , URL = require('url')
-    , constants = require('./constants.js');
+     
+const constants = require('iopa').constants,
+    IOPA = constants.IOPA,
+    SERVER = constants.SERVER,
+    COAP = constants.COAP
+   
+// SETUP REQUEST DEFAULTS 
+const maxMessageId   = Math.pow(2, 16);
+const  maxToken        = Math.pow(2, 32)
+var _lastMessageId = Math.floor(Math.random() * (maxMessageId - 1));
+var _lastToken = Math.floor(Math.random() * (maxToken - 1));
+
     
 /**
  * Default IOPA Request for CoAP fields
@@ -38,11 +47,11 @@
  */
 module.exports.defaultContext = function CoAPFormat_defaultContext(context) {  
  
-  context["coap.Ack"] = false;
-  context["coap.Reset"] = false;
-  context["coap.Confirmable"] = true;
-  context["iopa.MessageId"] = _nextMessageId();
-  context["iopa.Token"] = _nextToken();
+  context[COAP.Ack] = false;
+  context[COAP.Reset] = false;
+  context[COAP.Confirmable] = true;
+  context[IOPA.MessageId] = _nextMessageId();
+  context[IOPA.Token] = _nextToken();
   return context;
 };
 
@@ -51,15 +60,15 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
  * @object context IOPA context dictionary
   */
 module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelContext, eventType) {
-     var rawStream, context;
+     var rawStream;
      
-     if (eventType == "response")
-       rawStream = channelContext.response["server.RawStream"]
+     if (eventType == IOPA.EVENTS.Response)
+       rawStream = channelContext.response[SERVER.RawStream]
      else
-       rawStream = channelContext["server.RawStream"];
+       rawStream = channelContext[SERVER.RawStream];
     
       rawStream.on("data", function(chunk){
-         var packet = CoapPacket.parse(chunk);
+         var packet = coapPacket.parse(chunk);
              /*
              *   packet contains:
              *       code   string
@@ -71,39 +80,32 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
              *       options    array   {name: string, value: buffer}
              *       payload   buffer
              */
-         
    
-        if (packet.code > '0.00' && packet.code<'1.00')
-             context = channelContext;
-        else
-           context = _createResponseContext(channelContext);
-       
-            _parsePacket.call(this, packet, context);
+           
+        _parsePacket.call(this, packet, channelContext);
        
         if (packet.code > '0.00' && packet.code<'1.00')
         {
-            channelContext["iopa.Events"].emit("request", context);  //REQUEST
-                if (!(context["coap.Code"] === "0.01" && context["iopa.Headers"]["Observe"]>'0'))
-               context["iopa.Events"].emit("iopa.Complete");
-    
+            // call appFunc and self-dispose channelContext when done
+            channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, channelContext);  //REQUEST
+            
+            if (!(channelContext[COAP.Code] === "0.01" && channelContext[IOPA.Headers]["Observe"]>'0'))
+              setTimeout(function(){ channelContext[IOPA.Events].emit(IOPA.EVENTS.Finish)}, 50);   
         }
         else
         {
-           channelContext["iopa.Events"].emit("response", context);   //RESPONSE
-           
-            _onClose(context);
-           }
-          
-        context["server.InProcess"] = false;
-        
+           channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, channelContext);   //RESPONSE 
+              channelContext[IOPA.Events].emit(IOPA.EVENTS.Finish);     
+        }
+                
       });
 };
 
 /**
- * Helper to Close Incoming MQTT Packet
+ * Helper to Close Incoming COAP Packet
  * 
  * @method _onClose
- * @object packet MQTT Raw Packet
+ * @object packet COAP Raw Packet
  * @object ctx IOPA context dictionary
  * @private
  */
@@ -112,36 +114,10 @@ function _onClose(ctx) {
         iopaContextFactory.dispose(ctx);
     }, 1000);
     
-   if (ctx["server.InProcess"])
-     ctx["iopa.CallCancelledSource"].cancel('Client Socket Disconnected');
-   
- // ctx["server.ChannelContext"]["server.RawComplete"]();
+   if (ctx[IOPA.Events])
+     ctx[SERVER.CallCancelledSource].cancel('Client Socket Disconnected');
+
 };
-
-
-function _createResponseContext(parentContext)
-{
-        var context = iopaContextFactory.create();
-        context["server.TLS"] = parentContext.response["server.TLS"];
-        context["server.RemoteAddress"] = parentContext.response["server.RemoteAddress"];
-        context["server.RemotePort"] = parentContext.response["server.RemotePort"] ;
-        context["server.LocalAddress"] = parentContext.response["server.LocalAddress"];
-        context["server.LocalPort"] = parentContext.response["server.LocalPort"]; 
-        context["server.RawStream"] = parentContext.response["server.RawStream"];    
-        context["server.InProcess"] = true;
-        context.response["server.TLS"] = parentContext["server.TLS"];    
-        context.response["server.RemoteAddress"] = parentContext["server.RemoteAddress"];    
-        context.response["server.RemotePort"] = parentContext["server.RemotePort"];    
-        context.response["server.LocalAddress"] = parentContext["server.LocalAddress"];    
-        context.response["server.LocalPort"] = parentContext["server.LocalPort"];    
-        context.response["server.RawStream"] = parentContext["server.RawStream"];    
-        context["server.Logger"] = parentContext["server.Logger"];
-        context.log = context["server.Logger"];
-        
-        context["server.ChannelContext"] = parentContext;
-        context["server.CreateRequest"] = parentContext["server.CreateRequest"];
-        return context;
-}
 
 /**
  * CoAP IOPA Utility to Convert and Send Outgoing Client IOPA Request in Raw CoAP Packet (buffer)
@@ -152,27 +128,26 @@ function _createResponseContext(parentContext)
  * @private
  */
 module.exports.sendRequest = function coapFormat_SendRequest(context) {
-  
-   
- if (!context["iopa.MessageId"])
-     context["iopa.MessageId"] = _nextMessageId();
+     
+ if (!context[IOPA.MessageId])
+     context[IOPA.MessageId] = _nextMessageId();
   
    var packet = {
-     code: helpers.METHOD_CODES[context["iopa.Method"]] ,
-     confirmable: context["coap.Confirmable"],
-     reset: context["coap.Reset"],
-     ack: context["coap.Ack"],
-     messageId: context["iopa.MessageId"],
-     token: context["iopa.Token"],
-     payload: context["iopa.Body"].toBuffer()
+     code: COAP.CODES[context[IOPA.Method]] ,
+     confirmable: context[COAP.Confirmable],
+     reset: context[COAP.Reset],
+     ack: context[COAP.Ack],
+     messageId: context[IOPA.MessageId],
+     token: context[IOPA.Token],
+     payload: context[IOPA.Body].toBuffer()
    };
  
-   var headers = context["iopa.Headers"];
+   var headers = context[IOPA.Headers];
    var options = [];
    
-   options.push({name: 'Uri-Path', 'value': new Buffer(context["iopa.PathBase"] + context["iopa.Path"])});
-   if (context["iopa.QueryString"])
-        packet.options.push({name: 'Uri-Query', 'value': new Buffer(context["iopa.QueryString"])});
+   options.push({name: 'Uri-Path', 'value': new Buffer(context[IOPA.PathBase] + context[IOPA.Path])});
+   if (context[IOPA.QueryString])
+        packet.options.push({name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString])});
 
    for (var key in headers) {
      if (headers.hasOwnProperty(key)) {
@@ -200,10 +175,10 @@ module.exports.sendRequest = function coapFormat_SendRequest(context) {
      *       payload   buffer
      */
      
- context["server.ResendOnTimeout"] =  !(context["coap.Ack"] || context["coap.Reset"] || context["coap.Confirmable"] === false);
+ context[SERVER.Retry] =  !(context[COAP.Ack] || context[COAP.Reset] || context[COAP.Confirmable] === false);
  
-  var buf = CoapPacket.generate(packet);
-  context["server.RawStream"].write(buf);
+  var buf = coapPacket.generate(packet);
+  context[SERVER.RawStream].write(buf);
 };
 
 
@@ -246,84 +221,83 @@ function _parsePacket(packet, context) {
 
     headers["Content-Length"] = packet.length;
     
-    context["iopa.Headers"] = headers;
-    context["iopa.Path"] =paths.join('/') || "";
-    context["iopa.PathBase"] = "";
-    context["iopa.QueryString"] = queries.join('&');
+    context[IOPA.Headers] = headers;
+    context[IOPA.Path] =paths.join('/') || "";
+    context[IOPA.PathBase] = "";
+    context[IOPA.QueryString] = queries.join('&');
        if (packet.code > '0.00' && packet.code<'1.00')
        {
-            context["iopa.Method"] = helpers.COAP_CODES[packet.code].toUpperCase(); //REQUEST
-            context["iopa.StatusCode"] = 0;
-            context["server.IsRequest"] = true;   
+            context[IOPA.Method] = COAP.CODES[packet.code].toUpperCase(); //REQUEST
+            context[IOPA.StatusCode] = 0;
+            context[SERVER.IsRequest] = true;   
        }
         else
         {
-          context["iopa.StatusCode"] =packet.code;  //RESPONSE
-          context["iopa.Method"] = packet.code;
-          context["server.IsRequest"] = false; 
+          context[IOPA.StatusCode] =packet.code;  //RESPONSE
+          context[IOPA.Method] = packet.code;
+          context[SERVER.IsRequest] = false; 
         }
   
-    context["iopa.Protocol"] = "COAP/1.0";
-    context["iopa.Body"] = iopaStream.EmptyStream;
+    context[IOPA.Protocol] = IOPA.PROTOCOLS.COAP;
+    context[IOPA.Body] = iopaStream.EmptyStream;
 
          
-    if (context["server.TLS"])
-        context["iopa.Scheme"] = "coaps";
+    if (context[SERVER.TLS])
+        context[IOPA.Scheme] = IOPA.SCHEMES.COAPS;
     else
-        context["iopa.Scheme"] = "coap";
+          context[IOPA.Scheme] = IOPA.SCHEMES.COAP;
 
-    context["coap.Ack"] = packet.ack;
-    context["coap.Reset"] = packet.reset;
-    context["coap.Confirmable"] = packet.confirmable;
-    context["iopa.Token"] = packet.token;
-    context["coap.Options"] = packet.options;
-    context["coap.Code"] = packet.code;
-    context["coap.WriteAck"] = _writeAck.bind(this, context.response);
-    context["coap.WriteError"] = _writeError.bind(this, context.response);
+    context[COAP.Ack] = packet.ack;
+    context[COAP.Reset] = packet.reset;
+    context[COAP.Confirmable] = packet.confirmable;
+    context[IOPA.Token] = packet.token;
+    context[COAP.Options] = packet.options;
+    context[COAP.Code] = packet.code;
+    context[SERVER.WriteAck] = _writeAck.bind(this, context.response);
+    context[SERVER.WriteErr] = _writeError.bind(this, context.response);
   
-    context["iopa.MessageId"] = packet.messageId;
-    context["iopa.Body"] =  new iopaStream.BufferStream(packet.payload);
+    context[IOPA.MessageId] = packet.messageId;
+    context[IOPA.Body] =  new iopaStream.BufferStream(packet.payload);
  
-    context["server.IsRequest"] = true;
-    context["server.IsLocalOrigin"] = false;
+    context[SERVER.IsRequest] = true;
+    context[SERVER.IsLocalOrigin] = false;
        
-    context['iopa.ReasonPhrase'] = helpers.STATUS_CODES[context["iopa.StatusCode"]];
+    context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
      
     // SETUP RESPONSE DEFAULTS
     var response = context.response;
     
-    response["iopa.StatusCode"] = '2.05';
+    response[IOPA.StatusCode] = '2.05';
    
-    response["iopa.Headers"] = {};
-    response["iopa.Protocol"] = context["iopa.Protocol"];
-    response["iopa.MessageId"] = context["iopa.MessageId"];
+    response[IOPA.Headers] = {};
+    response[IOPA.Protocol] = context[IOPA.Protocol];
+    response[IOPA.MessageId] = context[IOPA.MessageId];
     
     // SETUP RESPONSE DEFAULTS
 
-    response["coap.Ack"] = context["coap.Ack"];
-    response["coap.Reset"] = false;
-    response["coap.Confirmable"] = false;    // default for piggy-backed responses
-    response["iopa.Token"] = context["iopa.Token"];
-    response["coap.Options"] = undefined; // USE iopa.Headers instead
-    Object.defineProperty(response, 'iopa.Method', {
-       get: function() { return response["iopa.StatusCode"]; },
+    response[COAP.Ack] = context[COAP.Ack];
+    response[COAP.Reset] = false;
+    response[COAP.Confirmable] = false;    // default for piggy-backed responses
+    response[IOPA.Token] = context[IOPA.Token];
+    response[COAP.Options] = undefined; // USE iopa.Headers instead
+    Object.defineProperty(response, IOPA.Method, {
+       get: function() { return this[IOPA.StatusCode]; },
        enumerable: true,
        configurable: true
       });
     
-     if ('Observe' in context["iopa.Headers"] ) 
-        response["iopa.Body"]  =  new iopaStream.OutgoingMultiSendStream();
+     if ('Observe' in context[IOPA.Headers] ) 
+        response[IOPA.Body]  =  new iopaStream.OutgoingMultiSendStream();
      else
-        response["iopa.Body"]  =  new iopaStream.OutgoingStream();
+        response[IOPA.Body]  =  new iopaStream.OutgoingStream();
          
-    response['iopa.ReasonPhrase'] = helpers.STATUS_CODES[response["iopa.StatusCode"]];
+    response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
            
-    if (response["iopa.Body"])
+    if (response[IOPA.Body])
     {
-    //  response["iopa.Body"].on("finish", _coapSendResponse.bind(this, context));
-      response["iopa.Body"].on("data", _coapSendResponse.bind(this, context));
+    //  response[IOPA.Body].on("finish", _coapSendResponse.bind(this, context));
+      response[IOPA.Body].on("data", _coapSendResponse.bind(this, context));
     }
-    
  }
 
 /**
@@ -339,20 +313,20 @@ function _coapSendResponse(context, payload) {
    
     var response = context.response;
     
-    if (!response["iopa.MessageId"])
-     response["iopa.MessageId"] = _nextMessageId();
+    if (!response[IOPA.MessageId])
+     response[IOPA.MessageId] = _nextMessageId();
 
    var packet = {
-     code: response["iopa.StatusCode"] ,
-     confirmable: response["coap.Confirmable"],
-     reset: response["coap.Reset"],
-     ack: response["coap.Ack"],
-     messageId: response["iopa.MessageId"],
-     token: response["iopa.Token"],
+     code: response[IOPA.StatusCode] ,
+     confirmable: response[COAP.Confirmable],
+     reset: response[COAP.Reset],
+     ack: response[COAP.Ack],
+     messageId: response[IOPA.MessageId],
+     token: response[IOPA.Token],
      payload: payload
    };
    
-   var headers = response["iopa.Headers"];
+   var headers = response[IOPA.Headers];
    var options = [];
  
    for (var key in headers) {
@@ -371,12 +345,11 @@ function _coapSendResponse(context, payload) {
  
   packet.options = options;
    
-  response["server.ResendOnTimeout"] =  !(response["coap.Ack"] || response["coap.Reset"] || response["coap.Confirmable"] === false);
-   response["server.InProcess"] = true;
-  var buf = CoapPacket.generate(packet);
-  response["server.RawStream"].write(buf);
+  response[SERVER.Retry] =  !(response[COAP.Ack] || response[COAP.Reset] || response[COAP.Confirmable] === false);
+  var buf = coapPacket.generate(packet);
+  response[SERVER.RawStream].write(buf);
   
-   delete response["iopa.MessageId"];
+   response[IOPA.MessageId] = null;
 }
 
 /**
@@ -387,9 +360,9 @@ function _coapSendResponse(context, payload) {
  */
 function _writeError(context, errorPayload) {
   
-  var buf = CoapPacket.generate({ code: '5.00', payload: errorPayload });
+  var buf = coapPacket.generate({ code: '5.00', payload: errorPayload });
   
-  context["server.RawStream"].write(buf);
+  context[SERVER.RawStream].write(buf);
 }
 
 /**
@@ -399,11 +372,11 @@ function _writeError(context, errorPayload) {
  * @public
  */
 function _writeAck(context) {
-  if (!context["iopa.MessageId"])
-     context["iopa.MessageId"] = _nextMessageId();
+  if (!context[IOPA.MessageId])
+     context[IOPA.MessageId] = _nextMessageId();
  
-    var buf = CoapPacket.generate( {
-              messageId: context["iopa.MessageId"]
+    var buf = coapPacket.generate( {
+              messageId: context[IOPA.MessageId]
             , code: '0.00'
             , options: []
             , confirmable: false
@@ -411,20 +384,15 @@ function _writeAck(context) {
             , reset: false
           });
                    
-  var code = context["iopa.StatusCode"];
-  var reason =  context["iopa.ReasonPhrase"]; 
-  context["iopa.StatusCode"] = "0.00";
-  context["iopa.ReasonPhrase"] = helpers.STATUS_CODES[context["iopa.StatusCode"]];
-  context["server.RawStream"].write(buf);
-  context["iopa.StatusCode"] = code;
-  context["iopa.ReasonPhrase"] = reason;
+  var code = context[IOPA.StatusCode];
+  var reason =  context[IOPA.ReasonPhrase]; 
+  context[IOPA.StatusCode] = "0.00";
+  context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
+  context[SERVER.RawStream].write(buf);
+  context[IOPA.StatusCode] = code;
+  context[IOPA.ReasonPhrase] = reason;
+  context[IOPA.MessageId] = null;
 }
-
-// SETUP REQUEST DEFAULTS 
-const maxMessageId   = Math.pow(2, 16);
-const  maxToken        = Math.pow(2, 32)
-var _lastMessageId = Math.floor(Math.random() * (maxMessageId - 1));
-var _lastToken = Math.floor(Math.random() * (maxToken - 1));
 
 /**
  * CoAP  Utility for sequential message id
