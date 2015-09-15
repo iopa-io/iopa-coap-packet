@@ -60,9 +60,10 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
  * @object context IOPA context dictionary
   */
 module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelContext, eventType) {
-     var rawStream;
+     var rawStream, context;
      
      if (eventType == IOPA.EVENTS.Response)
+     
        rawStream = channelContext.response[SERVER.RawStream]
      else
        rawStream = channelContext[SERVER.RawStream];
@@ -80,44 +81,64 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
              *       options    array   {name: string, value: buffer}
              *       payload   buffer
              */
-   
+            
+         if (packet.code > '0.00' && packet.code<'1.00')
+             context = channelContext;
+        else
+           context = _createResponseContext(channelContext);
+      
            
-        _parsePacket.call(this, packet, channelContext);
+        _parsePacket.call(this, packet, context);
        
         if (packet.code > '0.00' && packet.code<'1.00')
         {
             // call appFunc and self-dispose channelContext when done
-            channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, channelContext);  //REQUEST
+            channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context);  //REQUEST
             
-            if (!(channelContext[COAP.Code] === "0.01" && channelContext[IOPA.Headers]["Observe"]>'0'))
-              setTimeout(function(){ channelContext[IOPA.Events].emit(IOPA.EVENTS.Finish)}, 50);   
+            if (!(context[COAP.Code] === "0.01" && context[IOPA.Headers]["Observe"]>'0'))
+              setTimeout(function(){ context[IOPA.Events].emit(IOPA.EVENTS.Finish)}, 50);   
         }
         else
         {
-           channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, channelContext);   //RESPONSE 
-              channelContext[IOPA.Events].emit(IOPA.EVENTS.Finish);     
+           channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context);   //RESPONSE 
+           setTimeout(function() {
+               iopaContextFactory.dispose(context);
+           }, 1000);
         }
                 
       });
 };
 
-/**
- * Helper to Close Incoming COAP Packet
- * 
- * @method _onClose
- * @object packet COAP Raw Packet
- * @object ctx IOPA context dictionary
- * @private
- */
-function _onClose(ctx) {
-    setTimeout(function() {
-        iopaContextFactory.dispose(ctx);
-    }, 1000);
-    
-   if (ctx[IOPA.Events])
-     ctx[SERVER.CallCancelledSource].cancel('Client Socket Disconnected');
+function _createResponseContext(parentContext)
+{ 
+      var parentResponse = parentContext.response;
+  
+        var context = iopaContextFactory.createContext();
+        context[SERVER.TLS] = false;
+        context[SERVER.RemoteAddress] =parentResponse[SERVER.RemoteAddress];
+        context[SERVER.RemotePort] = parentResponse[SERVER.RemotePort]
+        context[SERVER.LocalAddress] =parentResponse[SERVER.LocalAddress]
+        context[SERVER.LocalPort] = parentResponse[SERVER.LocalPort] 
+        context[SERVER.RawStream] =    parentResponse[SERVER.RawStream]
+        context[SERVER.IsLocalOrigin] = parentResponse[SERVER.IsLocalOrigin]
+        context[SERVER.IsRequest] = parentResponse[SERVER.IsRequest] ;
+        context[SERVER.SessionId] = parentResponse[SERVER.SessionId];
+        
+        var response = context.response;
+        response[SERVER.TLS] = parentContext[SERVER.TLS];
+        response[SERVER.RemoteAddress] = parentContext[SERVER.RemoteAddress];
+        response[SERVER.RemotePort] = parentContext[SERVER.RemotePort];
+        response[SERVER.LocalAddress] = parentContext[SERVER.LocalAddress];
+        response[SERVER.LocalPort] = parentContext[SERVER.LocalPort];
+        response[SERVER.RawStream] = parentContext[SERVER.RawStream];
+        response[SERVER.RawTransport] = parentContext[SERVER.RawTransport];
+        response[SERVER.IsLocalOrigin] =  parentContext[SERVER.IsLocalOrigin]
+        response[SERVER.IsRequest] = parentContext[SERVER.IsRequest]
 
-};
+        context[SERVER.ParentContext] = parentContext;
+        context[SERVER.Fetch] = parentContext[SERVER.Fetch];
+        return context;
+}
 
 /**
  * CoAP IOPA Utility to Convert and Send Outgoing Client IOPA Request in Raw CoAP Packet (buffer)
