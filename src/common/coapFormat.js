@@ -67,7 +67,7 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
 
   rawStream.on("data", function (chunk) {
     var packet = coapPacket.parse(chunk);
-    /*
+     /*
     *   packet contains:
     *       code   string
     *       confirmable   boolean
@@ -103,10 +103,8 @@ function _createResponseContext(parentContext) {
   var parentResponse = parentContext.response;
 
   var context = parentContext[SERVER.Factory].createContext();
+  parentContext[SERVER.Factory].mergeCapabilities(context, parentContext);
   var response = context.response;
-
-  context[SERVER.Capabilities] = parentContext[SERVER.Capabilities];
-  context[SERVER.ParentContext] = parentContext;
 
   context[SERVER.TLS] = parentResponse[SERVER.TLS];
   context[SERVER.RemoteAddress] = parentResponse[SERVER.RemoteAddress];
@@ -364,6 +362,10 @@ function _writeError(context, errorPayload) {
   context[SERVER.RawStream].write(buf);
 }
 
+const CACHE = {CAPABILITY: "urn:io.iopa:Cache",
+     DB: "cache.Db",
+     DONOTCACHE: "cache.DoNotCache"
+      }
 /**
  * Coap IOPA Utility to Write Raw CoAP Message containing 0.00 Ack Message for given Message Id
  * 
@@ -385,9 +387,14 @@ function _writeAck(context) {
 
   var code = context[IOPA.StatusCode];
   var reason = context[IOPA.ReasonPhrase];
+  var donotcache = context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE];
+  context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = true;
+  
   context[IOPA.StatusCode] = "0.00";
   context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
   context[SERVER.RawStream].write(buf);
+   context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = donotcache;
+ 
   context[IOPA.StatusCode] = code;
   context[IOPA.ReasonPhrase] = reason;
   context[IOPA.MessageId] = null;
