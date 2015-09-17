@@ -57,9 +57,10 @@ function CoAPPacketServer(options, appFunc) {
   }
     
   IopaServer.call(this, options, appFunc);
-  
+   
    // INIT UDP SERVER
   this._udp = udp.createServer(options, this.serverChannelPipeline);
+
 }
 
 util.inherits(CoAPPacketServer, IopaServer);

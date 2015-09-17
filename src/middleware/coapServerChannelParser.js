@@ -23,7 +23,11 @@ const util = require('util'),
     IOPA = constants.IOPA,
     SERVER = constants.SERVER,
     COAP = constants.COAP;
-    
+
+const COAPMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap", PROTOCOLVERSION: "RFC 7252"},
+      packageVersion = require('../../package.json').version,
+      THISMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap:serverchannel", SESSIONCLOSE: "serverchannel.SessionClose"}
+
 /**
  *  CoAP IOPA Middleware to convert inbound UDP packets into parsed CoAP requests 
  *
@@ -32,10 +36,12 @@ const util = require('util'),
  * @constructor
  */
 function CoAPServerChannelParser(app) {
-    app.properties[SERVER.Capabilities]["iopa-coap.Version"] = "1.2";
-    app.properties[SERVER.Capabilities]["iopa-coap.Support"] = {
-       "coap.Version": "RFC 7252"
-    };
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][IOPA.Protocol] = COAPMIDDLEWARE.PROTOCOLVERSION;
+    
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
+  
 }
 
 /**
@@ -44,18 +50,19 @@ function CoAPServerChannelParser(app) {
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(channelContext, next) {
+    channelContext[IOPA.Scheme] = IOPA.SCHEMES.COAP;
+    
+    var p = new Promise(function(resolve, reject){
+           channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSIONCLOSE] = resolve;
+        }); 
     
     channelContext[IOPA.Events].on(IOPA.EVENTS.Finish, function(){
-        channelContext["CoAPServerChannelParser.SessionClose"]();
+        channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSIONCLOSE]();
     });
  
     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
     
-    return next().then(function(){ return new Promise(function(resolve, reject){
-           channelContext["CoAPServerChannelParser.SessionClose"] = resolve;
-           channelContext["CoAPServerChannelParser.SessionError"] = reject;
-        }); 
-    });
+    return next().then(function(){ return p });
 };
 
 module.exports = CoAPServerChannelParser;

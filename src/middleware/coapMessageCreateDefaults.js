@@ -22,8 +22,10 @@ const util = require('util'),
   IOPA = constants.IOPA,
   SERVER = constants.SERVER,
   COAP = constants.COAP
-
   
+const COAPMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap", PROTOCOLVERSION: "RFC 7252"},
+       packageVersion = require('../../package.json').version;
+
 /**
  * CoAP IOPA Middleware to create Default Message Properties in IOPA properties dictionary
  *
@@ -32,11 +34,10 @@ const util = require('util'),
  * @constructor
  * @public
  */
-function CoAPMessageCreateDefaults(app) {
-      app.properties[SERVER.Capabilities]["iopa-coap.Version"] = "1.0";
-      app.properties[SERVER.Capabilities]["iopa-coap.Support"] = {
-        "coap.Version": "RFC 7252"
-      };
+function CoAPMessageCreateDefaults(app) { 
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][IOPA.Protocol] = COAPMIDDLEWARE.PROTOCOLVERSION;
  }
 
 CoAPMessageCreateDefaults.prototype.invoke = function CoAPMessageCreateDefaults_invoke(context, next){

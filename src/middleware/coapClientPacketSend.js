@@ -36,7 +36,7 @@ module.exports = function CoAPClientPacketSend(context) {
         CoAPFormat.sendRequest(context);
     }
     catch (err) {
-        context[SERVER.Logger].error("[COAPCLIENTPACKETSEND] Unable to send CoAP packet " 
+        context[SERVER.Logger].error("[COAP-CLIENTPACKETSEND] Unable to send CoAP packet " 
             + context[IOPA.Method] + ": " + err);
         context =null;
         return new Promise(function(resolve, reject){ reject('Unable to parse IOPA Message into CoAP packet');});

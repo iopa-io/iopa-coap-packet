@@ -20,11 +20,11 @@
  const coapPacket = require('coap-packet')
     , util = require('util')
     , iopaStream = require('iopa-common-stream')
-    , iopaContextFactory = require('iopa').factory
+    , iopa = require('iopa')
     , helpers = require('./helpers.js')
     , URL = require('url')
      
-const constants = require('iopa').constants,
+const constants = iopa.constants,
     IOPA = constants.IOPA,
     SERVER = constants.SERVER,
     COAP = constants.COAP
@@ -34,8 +34,7 @@ const maxMessageId   = Math.pow(2, 16);
 const  maxToken        = Math.pow(2, 32)
 var _lastMessageId = Math.floor(Math.random() * (maxMessageId - 1));
 var _lastToken = Math.floor(Math.random() * (maxToken - 1));
-
-    
+   
 /**
  * Default IOPA Request for CoAP fields
  *
@@ -46,7 +45,6 @@ var _lastToken = Math.floor(Math.random() * (maxToken - 1));
  * @public
  */
 module.exports.defaultContext = function CoAPFormat_defaultContext(context) {  
- 
   context[COAP.Ack] = false;
   context[COAP.Reset] = false;
   context[COAP.Confirmable] = true;
@@ -62,8 +60,7 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
 module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelContext, eventType) {
      var rawStream, context;
      
-     if (eventType == IOPA.EVENTS.Response)
-     
+     if (eventType == IOPA.EVENTS.Response) 
        rawStream = channelContext.response[SERVER.RawStream]
      else
        rawStream = channelContext[SERVER.RawStream];
@@ -77,17 +74,15 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
              *       reset   boolean    
              *       ack    boolean
              *       messageId  UInt16
-             *       token: buffer hex
+             *       token  buffer hex
              *       options    array   {name: string, value: buffer}
              *       payload   buffer
              */
-            
          if (packet.code > '0.00' && packet.code<'1.00')
-             context = channelContext;
+            context = channelContext;
         else
-           context = _createResponseContext(channelContext);
-      
-           
+            context = _createResponseContext(channelContext);
+          
         _parsePacket.call(this, packet, context);
        
         if (packet.code > '0.00' && packet.code<'1.00')
@@ -96,16 +91,13 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
             channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context);  //REQUEST
             
             if (!(context[COAP.Code] === "0.01" && context[IOPA.Headers]["Observe"]>'0'))
-              setTimeout(function(){ context[IOPA.Events].emit(IOPA.EVENTS.Finish)}, 50);   
+              process.nextTick(function(){ context[IOPA.Events].emit(IOPA.EVENTS.Finish)});   
         }
         else
         {
            channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context);   //RESPONSE 
-           setTimeout(function() {
-               iopaContextFactory.dispose(context);
-           }, 1000);
-        }
-                
+           setTimeout(context.dispose, 50);
+          }            
       });
 };
 
@@ -113,8 +105,13 @@ function _createResponseContext(parentContext)
 { 
       var parentResponse = parentContext.response;
   
-        var context = iopaContextFactory.createContext();
-        context[SERVER.TLS] = false;
+        var context = parentContext[SERVER.Factory].createContext();
+        var response = context.response;
+    
+        context[SERVER.Capabilities] = parentContext[SERVER.Capabilities];
+        context[SERVER.ParentContext] = parentContext;
+       
+        context[SERVER.TLS] = parentResponse[SERVER.TLS];
         context[SERVER.RemoteAddress] =parentResponse[SERVER.RemoteAddress];
         context[SERVER.RemotePort] = parentResponse[SERVER.RemotePort]
         context[SERVER.LocalAddress] =parentResponse[SERVER.LocalAddress]
@@ -124,7 +121,6 @@ function _createResponseContext(parentContext)
         context[SERVER.IsRequest] = parentResponse[SERVER.IsRequest] ;
         context[SERVER.SessionId] = parentResponse[SERVER.SessionId];
         
-        var response = context.response;
         response[SERVER.TLS] = parentContext[SERVER.TLS];
         response[SERVER.RemoteAddress] = parentContext[SERVER.RemoteAddress];
         response[SERVER.RemotePort] = parentContext[SERVER.RemotePort];
@@ -135,7 +131,6 @@ function _createResponseContext(parentContext)
         response[SERVER.IsLocalOrigin] =  parentContext[SERVER.IsLocalOrigin]
         response[SERVER.IsRequest] = parentContext[SERVER.IsRequest]
 
-        context[SERVER.ParentContext] = parentContext;
         context[SERVER.Fetch] = parentContext[SERVER.Fetch];
         return context;
 }
@@ -183,18 +178,6 @@ module.exports.sendRequest = function coapFormat_SendRequest(context) {
    };
  
   packet.options = options;
-  
-    /*
-     *   packet contains:
-     *       code   string
-     *       confirmable   boolean
-     *       reset   boolean    
-     *       ack    boolean
-     *       messageId  UInt16
-     *       token: buffer hex
-     *       options    array   {name: string, value: buffer}
-     *       payload   buffer
-     */
      
  context[SERVER.Retry] =  !(context[COAP.Ack] || context[COAP.Reset] || context[COAP.Confirmable] === false);
  
@@ -261,7 +244,6 @@ function _parsePacket(packet, context) {
   
     context[IOPA.Protocol] = IOPA.PROTOCOLS.COAP;
     context[IOPA.Body] = iopaStream.EmptyStream;
-
          
     if (context[SERVER.TLS])
         context[IOPA.Scheme] = IOPA.SCHEMES.COAPS;
@@ -316,7 +298,6 @@ function _parsePacket(packet, context) {
            
     if (response[IOPA.Body])
     {
-    //  response[IOPA.Body].on("finish", _coapSendResponse.bind(this, context));
       response[IOPA.Body].on("data", _coapSendResponse.bind(this, context));
     }
  }

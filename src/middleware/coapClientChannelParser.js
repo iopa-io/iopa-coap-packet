@@ -23,6 +23,10 @@ const util = require('util')
     IOPA = constants.IOPA,
     SERVER = constants.SERVER,
     COAP = constants.COAP
+        
+const THISMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap:clientchannel"},
+      COAPMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap"},
+       packageVersion = require('../../package.json').version;
 
  /**
  * CoAP IOPA Middleware to convert inbound UDP packets into parsed CoAP responses
@@ -33,10 +37,11 @@ const util = require('util')
  * @public
  */
 function CoAPClientChannelParser(app) {
-    if (!app.properties[SERVER.Capabilities]["iopa-coap.Version"])
+    if (!app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY])
         throw ("Missing Dependency: CoAP Server/Middleware in Pipeline");
-
-   app.properties[SERVER.Capabilities]["CoAPClientChannelParser.Version"] = "1.0";
+     
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
 }
 
 CoAPClientChannelParser.prototype.invoke = function CoAPClientChannelParser_invoke(channelContext, next){
