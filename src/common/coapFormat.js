@@ -361,7 +361,7 @@ function _writeError(context, errorPayload) {
   context[SERVER.RawStream].write(buf);
 }
 
-const CACHE = {CAPABILITY: "urn:io.iopa:Cache",
+const CACHE = {CAPABILITY: "urn:io.iopa:cache",
      DB: "cache.Db",
      DONOTCACHE: "cache.DoNotCache"
       }
