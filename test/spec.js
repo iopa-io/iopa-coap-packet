@@ -17,7 +17,9 @@
 const iopa = require('iopa')
     , util = require('util')
     , Events = require('events')
-    , coap = require('../index.js');
+    , coap = require('../index.js')
+     , udp = require('iopa-udp');
+    
     
 var should = require('should');
 
@@ -31,6 +33,7 @@ describe('#CoAP Server()', function() {
   before(function(done){
     
     var appServer = new iopa.App();
+    appServer.use(coap);
 
     appServer.use(function(context, next){
       context.log.info("[TEST] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
@@ -42,7 +45,7 @@ describe('#CoAP Server()', function() {
         });
            
                        
-    server = coap.createServer(appServer.build());
+    server = udp.createServer(appServer.build());
    
       if (!process.env.PORT)
         process.env.PORT = 5683;

@@ -44,7 +44,11 @@ function CoAPClientChannelParser(app) {
     app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
 }
 
-CoAPClientChannelParser.prototype.invoke = function CoAPClientChannelParser_invoke(channelContext, next){
+CoAPClientChannelParser.prototype.invoke = function CoAPClientChannelParser_invoke(context, next){
+      return next(); 
+}
+
+CoAPClientChannelParser.prototype.connect = function CoAPClientChannelParser_connect(channelContext, next){
      CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Response);
      return next();
 };

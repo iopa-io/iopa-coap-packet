@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-const iopa = require('iopa')
-    , coap = require('./index.js')      
-     , util = require('util');
+global.Promise = require('bluebird');
+
+const iopa = require('iopa'),
+     udp = require('iopa-udp'),
+     coap = require('./index.js'),      
+     util = require('util')
 
 const iopaMessageLogger = require('iopa-logger').MessageLogger
 
-var appServer = new iopa.App();
-appServer.use(iopaMessageLogger);
+var app = new iopa.App();
+app.use(coap);
+app.use(iopaMessageLogger);
 
-appServer.use(function(context, next){
+app.use(function(context, next){
    context.log.info("[DEMO] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
    
    if (context["iopa.Method"] === "GET")
@@ -34,8 +38,7 @@ appServer.use(function(context, next){
    return next();
 });
     
-var server = coap.createServer(appServer.build());
-server.connectuse(iopaMessageLogger);         
+var server = udp.createServer(app.build());
 
 if (!process.env.PORT)
   process.env.PORT = iopa.constants.IOPA.PORTS.COAP;
@@ -44,7 +47,7 @@ var context;
 var coapClient;
 server.listen(process.env.PORT, process.env.IP)
   .then(function(){
-    server.log.info("[DEMO] Server is on port " + server.port );
+    console.log("[DEMO] Server is on port " + server.port );
     return server.connect("coap://127.0.0.1");
   })
   .then(function(cl){
@@ -52,10 +55,10 @@ server.listen(process.env.PORT, process.env.IP)
     return coapClient.send("/projector", "GET");
     })
    .then(function(response){
-       server.log.info("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
+       console.log("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
        return server.close();
     }).then(function(){
-       server.log.info("Server Closed");
+       console.log("Server Closed");
     })
  ;
     

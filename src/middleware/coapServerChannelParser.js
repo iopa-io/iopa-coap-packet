@@ -41,7 +41,6 @@ function CoAPServerChannelParser(app) {
     
     app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
     app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
-  
 }
 
 /**
@@ -49,7 +48,8 @@ function CoAPServerChannelParser(app) {
  * @this context IOPA channelContext dictionary
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
-CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(channelContext, next) {
+CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_invoke(channelContext, next) {
+    
     channelContext[IOPA.Scheme] = IOPA.SCHEMES.COAP;
     
     var p = new Promise(function(resolve, reject){
@@ -60,9 +60,17 @@ CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invo
         channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSIONCLOSE]();
     });
  
+ 
+     channelContext[IOPA.Events].on(IOPA.EVENTS.Request, function(context){
+         context.using(next.dispatch);
+     })
+  
     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
     
-    return next().then(function(){ return p });
+    return p;
 };
+
+// No handler required for outbound records
+CoAPServerChannelParser.prototype.connect = null;
 
 module.exports = CoAPServerChannelParser;

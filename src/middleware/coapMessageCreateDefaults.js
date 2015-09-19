@@ -40,22 +40,9 @@ function CoAPMessageCreateDefaults(app) {
     app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][IOPA.Protocol] = COAPMIDDLEWARE.PROTOCOLVERSION;
  }
 
-CoAPMessageCreateDefaults.prototype.invoke = function CoAPMessageCreateDefaults_invoke(context, next){
-     context[SERVER.Fetch] = CoAPMessageCreateDefaults_fetch.bind(this, context[IOPA.Seq], context[SERVER.Fetch]);
-     return next();
-};
-
- /**
- * CoAP IOPA Middleware for Client Message Request Defaults
- *
- * @method CoAPMessageCreateDefaults_fetch
- * @private
- */
-function CoAPMessageCreateDefaults_fetch(id, nextFetch, urlStr, options, pipeline){
-    return nextFetch(urlStr, options, function(context){
-           CoAPFormat.defaultContext(context);
-           return pipeline(context);
-    });
+CoAPMessageCreateDefaults.prototype.dispatch = function CoAPClientPacketSend_dispatch(context, next){
+    CoAPFormat.defaultContext(context);
+    return next();
 };
 
 module.exports = CoAPMessageCreateDefaults;

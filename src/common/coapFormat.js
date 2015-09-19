@@ -226,8 +226,7 @@ function _parsePacket(packet, context) {
   context[IOPA.QueryString] = queries.join('&');
   if (packet.code > '0.00' && packet.code < '1.00') {
     context[IOPA.Method] = COAP.CODES[packet.code];  //REQUEST
-    console.log(context[IOPA.Method]);
-
+   
     context[IOPA.StatusCode] = 0;
     context[SERVER.IsRequest] = true;
   }

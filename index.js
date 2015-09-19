@@ -14,6 +14,5 @@
  * limitations under the License.
  */
 
-var Server = require('./src/server/coapPacketServer.js');
-module.exports.createServer = function(options, appFunc){return new Server(options, appFunc);}
-module.exports.default = Server;
+var Server = require('./src/server/coapPacketApplet.js');
+module.exports = Server;
