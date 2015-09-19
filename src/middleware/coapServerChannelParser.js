@@ -67,7 +67,7 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_inv
   
     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
     
-    return p;
+   return next().then(function () { return p });
 };
 
 // No handler required for outbound records

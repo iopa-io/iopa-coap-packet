@@ -386,13 +386,13 @@ function _writeAck(context) {
 
   var code = context[IOPA.StatusCode];
   var reason = context[IOPA.ReasonPhrase];
-  var donotcache = context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE];
-  context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = true;
+  var donotcache = context[SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE];
+  context[SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = true;
   
   context[IOPA.StatusCode] = "0.00";
   context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
   context[SERVER.RawStream].write(buf);
-   context[SERVER.ParentContext][SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = donotcache;
+   context[SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = donotcache;
  
   context[IOPA.StatusCode] = code;
   context[IOPA.ReasonPhrase] = reason;
