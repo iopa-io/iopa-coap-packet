@@ -345,7 +345,7 @@ function _coapSendResponse(context, payload) {
   var buf = coapPacket.generate(packet);
   response[SERVER.RawStream].write(buf);
 
-  response[IOPA.MessageId] = null;
+  // response[IOPA.MessageId] = null;
 }
 
 /**
