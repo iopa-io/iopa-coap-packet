@@ -16,10 +16,8 @@
  
 const util = require('util');
 
-const iopa = require('iopa'),
-  udp = require('iopa-udp'),
-  IopaServer = require('iopa-server');
-
+const iopa = require('iopa')
+  
 const constants = iopa.constants,
   IOPA = constants.IOPA,
   SERVER = constants.SERVER,

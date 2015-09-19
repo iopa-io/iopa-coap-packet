@@ -19,11 +19,8 @@
     "coap-packet": "^0.1.12",
     "iopa": "^1.2.0",
     "iopa-common-middleware": "^1.2.0",
-    "iopa-common-stream": "^1.2.0",
-    "iopa-server": "^1.2.0",
-    "lru-cache": "^2.7.0",
-    "iopa-udp": "^1.2.0"
-  },
+    "iopa-common-stream": "^1.2.0"
+   },
   "keywords": [
     "limerun",
     "iopa",
@@ -51,6 +48,7 @@
     "iopa-logger": "^1.2.0",
     "mocha": "^2.3.2",
     "mocha-junit-reporter": "^1.6.1",
-    "should": "^7.1.0"
+    "should": "^7.1.0", 
+    "iopa-udp": "^1.2.0"
   }
 }
