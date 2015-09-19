@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+ global.Promise = require('bluebird');
+
 const iopa = require('iopa')
     , util = require('util')
     , Events = require('events')

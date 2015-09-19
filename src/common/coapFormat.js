@@ -127,6 +127,8 @@ function _createResponseContext(parentContext) {
   response[SERVER.IsRequest] = parentContext[SERVER.IsRequest]
 
   context[SERVER.Fetch] = parentContext[SERVER.Fetch];
+  context[SERVER.Dispatch] = parentContext[SERVER.Dispatch];
+
   return context;
 }
 

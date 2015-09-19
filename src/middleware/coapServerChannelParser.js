@@ -37,6 +37,7 @@ const COAPMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap", PROTOCOLVERSION: "RFC 72
  */
 function CoAPServerChannelParser(app) {
     app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY] = {};
+    app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][SERVER.Version] = packageVersion;
     app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][IOPA.Protocol] = COAPMIDDLEWARE.PROTOCOLVERSION;
     
     app.properties[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY] = {};
@@ -69,8 +70,5 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_inv
     
    return next().then(function () { return p });
 };
-
-// No handler required for outbound records
-CoAPServerChannelParser.prototype.connect = null;
 
 module.exports = CoAPServerChannelParser;

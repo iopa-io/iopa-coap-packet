@@ -44,9 +44,8 @@ const COAPMIDDLEWARE = {CAPABILITY: "urn:io.iopa:coap", PROTOCOLVERSION: "RFC 72
 /**
  * CoAP IOPA Server includes CoAP Client
  * 
- * @class CoAPServer
- * @param {object} options  
- * @param {appFunc} appFunc  Server callback in IOPA AppFunc format
+ * @class CoAPPacketApplet
+ * @param app   the IOPA AppBuilder with Properties Dictionary, used to add server.capabilities
  * @constructor
  */
 module.exports = function CoAPPacketApplet(app) {
