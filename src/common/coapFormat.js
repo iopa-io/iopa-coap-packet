@@ -390,11 +390,15 @@ function _writeAck(context) {
   context[SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = true;
   
   context[IOPA.StatusCode] = "0.00";
+  context[IOPA.Method] = "0.00";
+ 
   context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
   context[SERVER.RawStream].write(buf);
    context[SERVER.Capabilities][CACHE.CAPABILITY][CACHE.DONOTCACHE] = donotcache;
  
   context[IOPA.StatusCode] = code;
+  context[IOPA.Method] = code;
+ 
   context[IOPA.ReasonPhrase] = reason;
   context[IOPA.MessageId] = null;
 }
