@@ -10,7 +10,7 @@
       "email": "build@iopa.io"
     }
   ],
-  "version": "1.2.11",
+  "version": "1.2.12",
   "repository": {
     "type": "git",
     "url": "https://github.com/iopa-io/iopa-coap-packet.git"
@@ -20,7 +20,7 @@
     "iopa": "^1.2.0",
     "iopa-common-middleware": "^1.2.0",
     "iopa-common-stream": "^1.2.0"
-   },
+  },
   "keywords": [
     "limerun",
     "iopa",
@@ -48,7 +48,7 @@
     "iopa-logger": "^1.2.0",
     "mocha": "^2.3.2",
     "mocha-junit-reporter": "^1.6.1",
-    "should": "^7.1.0", 
+    "should": "^7.1.0",
     "iopa-udp": "^1.2.0"
   }
 }
