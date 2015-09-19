@@ -62,7 +62,7 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_inv
  
  
      channelContext[IOPA.Events].on(IOPA.EVENTS.Request, function(context){
-         context.using(next.dispatch);
+         context.using(next.invoke);
      })
   
     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
