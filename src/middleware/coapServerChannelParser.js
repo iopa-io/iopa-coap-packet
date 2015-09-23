@@ -57,7 +57,7 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_inv
            channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSIONCLOSE] = resolve;
         }); 
     
-   channelContext[IOPA.CancelToken].onCancelled.then(function(reason){
+   channelContext[IOPA.CancelToken].onCancelled(function(reason){
         channelContext[SERVER.Capabilities][THISMIDDLEWARE.CAPABILITY][THISMIDDLEWARE.SESSIONCLOSE]();
     });
     
