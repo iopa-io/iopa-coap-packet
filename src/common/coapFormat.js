@@ -86,11 +86,10 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
     _parsePacket.call(this, packet, context);
 
     if (packet.code > '0.00' && packet.code < '1.00') {
-      // call appFunc and self-dispose channelContext when done
       channelContext[IOPA.Events].emit(IOPA.EVENTS.Request, context);  //REQUEST
             
-      if (!(context[COAP.Code] === "0.01" && context[IOPA.Headers]["Observe"] > '0'))
-        process.nextTick(function () { context[IOPA.Events].emit(IOPA.EVENTS.Finish) });
+    //  if (!(context[COAP.Code] === "0.01" && context[IOPA.Headers]["Observe"] > '0'))
+    //     process.nextTick(function () { context[IOPA.Events].emit(IOPA.EVENTS.Finish) });
     }
     else {
       channelContext[IOPA.Events].emit(IOPA.EVENTS.Response, context);   //RESPONSE 
