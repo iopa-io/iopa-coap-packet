@@ -157,7 +157,7 @@ module.exports.sendRequest = function coapFormat_SendRequest(context) {
 
   options.push({ name: 'Uri-Path', 'value': new Buffer(context[IOPA.PathBase] + context[IOPA.Path]) });
   if (context[IOPA.QueryString])
-    packet.options.push({ name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString]) });
+    options.push({ name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString]) });
 
   for (var key in headers) {
     if (headers.hasOwnProperty(key)) {
