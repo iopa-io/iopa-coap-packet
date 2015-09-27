@@ -284,15 +284,19 @@ function _parsePacket(packet, context) {
       }); */
 
   if ('Observe' in context[IOPA.Headers])
+  {
     response[IOPA.Body] = new iopaStream.OutgoingMultiSendStream();
-  else
-    response[IOPA.Body] = new iopaStream.OutgoingStream();
+    response[IOPA.Body].on("data", _coapSendResponse.bind(this, context));
 
+  }
+  else
+  {
+    response[IOPA.Body] = new iopaStream.OutgoingStream();
+    response[IOPA.Body].on("finish", _coapSendResponse.bind(this, context, context.response[IOPA.Body].toBuffer.bind(context.response[IOPA.Body])));
+  }
+  
   response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
 
-  if (response[IOPA.Body]) {
-    response[IOPA.Body].on("data", _coapSendResponse.bind(this, context));
-  }
 }
 
 /**
@@ -305,9 +309,10 @@ function _parsePacket(packet, context) {
  * @private
  */
 function _coapSendResponse(context, payload) {
-
-  var response = context.response;
-
+   var response = context.response;
+   if (typeof payload == 'function')
+     payload = payload();
+  
   if (!response[IOPA.MessageId])
     response[IOPA.MessageId] = _nextMessageId();
 
