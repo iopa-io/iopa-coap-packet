@@ -155,7 +155,7 @@ module.exports.sendRequest = function coapFormat_SendRequest(context) {
   var headers = context[IOPA.Headers];
   var options = [];
 
-  options.push({ name: 'Uri-Path', 'value': new Buffer(context[IOPA.PathBase] + context[IOPA.Path]) });
+  options.push({ name: 'Uri-Path', 'value': new Buffer((context[IOPA.PathBase] + context[IOPA.Path]).replace(/^\/|\/$/g, '')) });
   if (context[IOPA.QueryString])
     options.push({ name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString]) });
 
@@ -220,7 +220,7 @@ function _parsePacket(packet, context) {
   headers["Content-Length"] = packet.length;
 
   context[IOPA.Headers] = headers;
-  context[IOPA.Path] = paths.join('/') || "";
+  context[IOPA.Path] = '/' + (paths.join('/') || "");
   context[IOPA.PathBase] = "";
   context[IOPA.QueryString] = queries.join('&');
   if (packet.code > '0.00' && packet.code < '1.00') {
