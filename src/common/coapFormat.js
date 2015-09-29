@@ -78,7 +78,7 @@ module.exports.inboundParser = function CoAPFormat_inboundParseMonitor(channelCo
     *       options    array   {name: string, value: buffer}
     *       payload   buffer
     */
-    if (packet.code > '0.00' && packet.code < '1.00')
+    if (eventType == IOPA.EVENTS.Request)
       context = channelContext;
     else
       context = _createResponseContext(channelContext);
