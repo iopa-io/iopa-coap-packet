@@ -64,5 +64,3 @@ module.exports = function CoAPPacketApplet(app) {
     app.use(CoAPClientPacketSend);
 
     }
-    
-    

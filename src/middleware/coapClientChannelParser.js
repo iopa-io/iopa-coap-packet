@@ -45,7 +45,8 @@ function CoAPClientChannelParser(app) {
 }
 
 CoAPClientChannelParser.prototype.connect = function CoAPClientChannelParser_connect(channelContext, next){
-     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Response);
+     if (channelContext.response)
+        CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Response);
      return next();
 };
 

@@ -255,7 +255,6 @@ function _parsePacket(packet, context) {
   context[IOPA.MessageId] = packet.messageId;
   context[IOPA.Body] = new iopaStream.BufferStream(packet.payload);
 
-  context[SERVER.IsRequest] = true;
   context[SERVER.IsLocalOrigin] = false;
 
   context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];

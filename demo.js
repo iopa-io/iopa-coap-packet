@@ -24,6 +24,7 @@ const iopa = require('iopa'),
 const iopaMessageLogger = require('iopa-logger').MessageLogger
 
 var app = new iopa.App();
+app.use(udp);
 app.use(coap);
 app.use(iopaMessageLogger);
 
@@ -38,17 +39,16 @@ app.use(function(context, next){
    return next();
 });
     
-var server = udp.createServer(app.build());
-
 if (!process.env.PORT)
   process.env.PORT = iopa.constants.IOPA.PORTS.COAP;
 
-var context;
+var context, _server;
 var coapClient;
-server.listen(process.env.PORT, process.env.IP)
-  .then(function(){
-    console.log("[DEMO] Server is on port " + server.port );
-    return server.connect("coap://127.0.0.1");
+_server = app.createServer("udp:");
+_server.listen(process.env.PORT, process.env.IP)
+  .then(function(linfo){
+    console.log("[DEMO] Server is on port " + _server["server.LocalPort"]);
+    return _server.connect("coap://127.0.0.1");
   })
   .then(function(cl){
     coapClient = cl;
@@ -56,7 +56,7 @@ server.listen(process.env.PORT, process.env.IP)
     })
    .then(function(response){
        console.log("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
-       return server.close();
+       return _server.close();
     }).then(function(){
        console.log("Server Closed");
     })

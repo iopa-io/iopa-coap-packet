@@ -28,15 +28,17 @@ var numberConnections = 0;
 
 describe('#CoAP Server()', function() {
   
-  var server, coapClient;
+  var _server, coapClient;
+  var app;
   var events = new Events.EventEmitter();
   
   before(function(done){
     
-    var appServer = new iopa.App();
-    appServer.use(coap);
+    app = new iopa.App();
+    app.use(udp);
+    app.use(coap);
 
-    appServer.use(function(context, next){
+    app.use(function(context, next){
       context.log.info("[TEST] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
       context.response["iopa.Body"].end("Hello World");
       setTimeout(function(){ 
@@ -46,25 +48,25 @@ describe('#CoAP Server()', function() {
         });
            
                        
-    server = udp.createServer(appServer.build());
-   
+  
       if (!process.env.PORT)
         process.env.PORT = 5683;
+      _server=app.createServer("udp:");
       
-       server.listen(process.env.PORT, process.env.IP).then(function(){
+       _server.listen(process.env.PORT, process.env.IP).then(function(linfo){
             done();
             setTimeout(function(){ events.emit("SERVER-UDP");}, 50);
              });
     });
     
    it('should listen via UDP', function(done) {   
-           server.port.should.equal(5683);
+           _server["server.LocalPort"].should.equal(5683);
            done();
     });
     
          
    it('should connect via UDP', function (done) {
-     server.connect("coap://127.0.0.1")
+     _server.connect("coap://127.0.0.1")
        .then(function (cl) {
          coapClient = cl;
          coapClient["server.RemotePort"].should.equal(5683);
@@ -87,10 +89,10 @@ describe('#CoAP Server()', function() {
            });
     });
 
-   /* it('should close', function(done) {
-       server.close().then(function(){
-         server.log.info("[TEST] CoAP Closed");
+   it('should close', function(done) {
+       _server.close().then(function(){
+         app.log.info("[TEST] CoAP Closed");
          done();});
-    });*/
+    });
     
 });
