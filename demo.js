@@ -42,13 +42,18 @@ app.use(function(context, next){
 if (!process.env.PORT)
   process.env.PORT = iopa.constants.IOPA.PORTS.COAP;
 
-var context, _server;
+var context, _server, _clientSocket;
 var coapClient;
 _server = app.createServer("udp:");
+_clientSocket = app.createServer("udp:");
+
 _server.listen(process.env.PORT, process.env.IP)
   .then(function(linfo){
     console.log("[DEMO] Server is on port " + _server["server.LocalPort"]);
-    return _server.connect("coap://127.0.0.1");
+    return _clientSocket.listen();
+  }).then(function(linfo){
+      console.log("[DEMO] Client is on port " + _clientSocket["server.LocalPort"]);
+    return _clientSocket.connect("coap://127.0.0.1");
   })
   .then(function(cl){
     coapClient = cl;
@@ -56,7 +61,7 @@ _server.listen(process.env.PORT, process.env.IP)
     })
    .then(function(response){
        console.log("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
-       return _server.close();
+       return _server.close().then(function(){return _clientSocket.close()});
     }).then(function(){
        console.log("Server Closed");
     })

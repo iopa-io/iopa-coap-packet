@@ -28,7 +28,7 @@ var numberConnections = 0;
 
 describe('#CoAP Server()', function() {
   
-  var _server, coapClient;
+  var _server, _clientSocket, coapClient;
   var app;
   var events = new Events.EventEmitter();
   
@@ -52,8 +52,11 @@ describe('#CoAP Server()', function() {
       if (!process.env.PORT)
         process.env.PORT = 5683;
       _server=app.createServer("udp:");
-      
-       _server.listen(process.env.PORT, process.env.IP).then(function(linfo){
+      _clientSocket= app.createServer("udp:");
+       _server.listen(process.env.PORT, process.env.IP)
+       .then(function(linfo){
+         return _clientSocket.listen()})
+         .then(function(linfo){
             done();
             setTimeout(function(){ events.emit("SERVER-UDP");}, 50);
              });
@@ -66,7 +69,7 @@ describe('#CoAP Server()', function() {
     
          
    it('should connect via UDP', function (done) {
-     _server.connect("coap://127.0.0.1")
+     _clientSocket.connect("coap://127.0.0.1")
        .then(function (cl) {
          coapClient = cl;
          coapClient["server.RemotePort"].should.equal(5683);
@@ -91,6 +94,8 @@ describe('#CoAP Server()', function() {
 
    it('should close', function(done) {
        _server.close().then(function(){
+         return _clientSocket.close()})
+         .then(function(){
          app.log.info("[TEST] CoAP Closed");
          done();});
     });
