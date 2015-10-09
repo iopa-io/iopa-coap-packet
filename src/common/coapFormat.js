@@ -50,7 +50,9 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
   context[COAP.Confirmable] = true;
   context[IOPA.MessageId] = _nextMessageId();
   context[IOPA.Token] = _nextToken();
-  context[IOPA.Body] = new iopaStream.OutgoingMessageStream();
+  context[IOPA.Body] = new iopaStream.OutgoingStream();
+
+  
   return context;
 };
 

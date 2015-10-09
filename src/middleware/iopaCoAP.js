@@ -163,21 +163,17 @@ function _invokeOnResponse(context, resolve, response) {
  * @private
  */
 function IopaCoAP_observation(originalContext, buf) {
-  var response = originalContext.create(); 
-  response[SERVER.IsRequest] = false;
-  response[COAP.Ack] = originalContext[COAP.Ack];
-  response[COAP.Reset] = false;
-  response[COAP.Confirmable] = originalContext[COAP.Confirmable];    
-  response[IOPA.Token] = originalContext[IOPA.Token];
-  response[COAP.Options] = null; 
-  response[IOPA.Method] = null;
-  response[IOPA.StatusCode] = '2.05';
-  response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
-  response[IOPA.Headers] = {};
-  response[IOPA.Protocol] = originalContext[IOPA.Protocol];
-  response[IOPA.MessageId] = null;
-  response[IOPA.Body] = new iopaStream.OutgoingStream(buf); 
-  return response.dispatch(true);
+    var response = originalContext.create();
+    response[SERVER.IsRequest] = false;
+    response[COAP.Ack] = originalContext[COAP.Ack];
+    response[COAP.Confirmable] = originalContext[COAP.Confirmable];
+    response[IOPA.Token] = originalContext[IOPA.Token];
+    response[IOPA.Method] = null;
+    response[IOPA.StatusCode] = '2.05';
+    response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
+    response[IOPA.Protocol] = originalContext[IOPA.Protocol];
+    response[IOPA.Body].end(buf);
+    return response.dispatch(true);
  };
  
 module.exports = IopaCoAP;
