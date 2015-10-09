@@ -76,7 +76,7 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_cha
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
 CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(context, next) {
-    context.response[IOPA.Body].once("finish", context.dispatch.bind(this, context.response));  
+    context.response[IOPA.Body].once("start", context.dispatch.bind(this, context.response));  
     return next()
 };
 
