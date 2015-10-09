@@ -45,11 +45,11 @@ function CoAPServerChannelParser(app) {
 }
 
 /**
- * @method invoke
+ * @method channel
  * @this context IOPA channelContext dictionary
  * @param next   IOPA application delegate for the remainder of the pipeline
  */
-CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_invoke(channelContext, next) {
+CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_channel(channelContext, next) {
     
     channelContext[IOPA.Scheme] = IOPA.SCHEMES.COAP;
     
@@ -68,6 +68,16 @@ CoAPServerChannelParser.prototype.channel = function CoAPServerChannelParser_inv
     CoAPFormat.inboundParser(channelContext, IOPA.EVENTS.Request);
     
    return next().then(function () { return p });
+};
+
+/**
+ * @method invoke
+ * @this context IOPA context dictionary
+ * @param next   IOPA application delegate for the remainder of the pipeline
+ */
+CoAPServerChannelParser.prototype.invoke = function CoAPServerChannelParser_invoke(context, next) {
+    context.response[IOPA.Body].once("finish", context.dispatch.bind(this, context.response));  
+    return next()
 };
 
 module.exports = CoAPServerChannelParser;

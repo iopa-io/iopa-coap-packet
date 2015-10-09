@@ -42,6 +42,8 @@ function CoAPClientPacketSend(app) {
 }
 
 CoAPClientPacketSend.prototype.dispatch = function CoAPClientPacketSend_dispatch(context, next) {
+    if (!context[SERVER.IsRequest])
+        return next();
 
     return next().then(function () {
         try {

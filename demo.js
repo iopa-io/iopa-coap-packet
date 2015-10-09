@@ -57,7 +57,7 @@ _server.listen(process.env.PORT, process.env.IP)
   })
   .then(function(cl){
     coapClient = cl;
-    return coapClient.send("/projector", "GET");
+    return coapClient.create("/projector", "GET").send();
     })
    .then(function(response){
        console.log("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());

@@ -50,6 +50,7 @@ module.exports.defaultContext = function CoAPFormat_defaultContext(context) {
   context[COAP.Confirmable] = true;
   context[IOPA.MessageId] = _nextMessageId();
   context[IOPA.Token] = _nextToken();
+  context[IOPA.Body] = new iopaStream.OutgoingMessageStream();
   return context;
 };
 
@@ -123,8 +124,8 @@ function _createResponseContext(parentContext) {
   response[SERVER.IsLocalOrigin] = parentContext[SERVER.IsLocalOrigin]
   response[SERVER.IsRequest] = parentContext[SERVER.IsRequest]
 
-  context[SERVER.Fetch] = parentContext[SERVER.Fetch];
-  context[SERVER.Dispatch] = parentContext[SERVER.Dispatch];
+  context.create = parentContext.create;
+  context.dispatch = parentContext.dispatch;
 
   return context;
 }
@@ -290,7 +291,7 @@ function _parsePacket(packet, context) {
   }
   else
   {
-    response[IOPA.Body] = new iopaStream.OutgoingStream();
+    response[IOPA.Body] = new iopaStream.OutgoingMessageStream();
     response[IOPA.Body].on("finish", _coapSendResponse.bind(this, context, context.response[IOPA.Body].toBuffer.bind(context.response[IOPA.Body])));
   }
   

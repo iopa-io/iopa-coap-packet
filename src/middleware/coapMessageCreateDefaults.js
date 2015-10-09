@@ -40,7 +40,7 @@ function CoAPMessageCreateDefaults(app) {
     app.properties[SERVER.Capabilities][COAPMIDDLEWARE.CAPABILITY][IOPA.Protocol] = COAPMIDDLEWARE.PROTOCOLVERSION;
  }
 
-CoAPMessageCreateDefaults.prototype.dispatch = function CoAPClientPacketSend_dispatch(context, next){
+CoAPMessageCreateDefaults.prototype.create = function CoAPMessageCreateDefaults_create(context, next){
     CoAPFormat.defaultContext(context);
     return next();
 };
