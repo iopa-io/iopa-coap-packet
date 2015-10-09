@@ -138,30 +138,35 @@ function _createResponseContext(parentContext) {
  * @returns void
  * @private
  */
-module.exports.sendRequest = function coapFormat_SendRequest(context) {
+module.exports.writeContext = function coapFormat_writeContext(context) {
 
   if (!context[IOPA.MessageId])
     context[IOPA.MessageId] = _nextMessageId();
 
   var packet = {
-    code: COAP.CODES[context[IOPA.Method]],
     confirmable: context[COAP.Confirmable],
     reset: context[COAP.Reset],
     ack: context[COAP.Ack],
     messageId: context[IOPA.MessageId],
     token: context[IOPA.Token],
-    payload: context[IOPA.Body].toBuffer()
+    payload: context[IOPA.Body].read()
   };
+
+  if (context[SERVER.IsRequest])
+    packet.code = COAP.CODES[context[IOPA.Method]]
+  else
+    packet.code = context[IOPA.StatusCode];
 
   var headers = context[IOPA.Headers];
   var options = [];
-
-  options.push({ name: 'Uri-Path', 'value': new Buffer((context[IOPA.PathBase] + context[IOPA.Path]).replace(/^\/|\/$/g, '')) });
-  if (context[IOPA.QueryString])
-    options.push({ name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString]) });
+  if (context[SERVER.IsRequest]) {
+    options.push({ name: 'Uri-Path', 'value': new Buffer((context[IOPA.PathBase] + context[IOPA.Path]).replace(/^\/|\/$/g, '')) });
+    if (context[IOPA.QueryString])
+      options.push({ name: 'Uri-Query', 'value': new Buffer(context[IOPA.QueryString]) });
+  }
 
   for (var key in headers) {
-    if (headers.hasOwnProperty(key)) {
+    if ((key !== 'Content-Length') && headers.hasOwnProperty(key)) {
       if (key == 'Content-Type')
         key = 'Content-Format';
 
@@ -259,7 +264,7 @@ function _parsePacket(packet, context) {
   context[SERVER.IsLocalOrigin] = false;
 
   context[IOPA.ReasonPhrase] = COAP.STATUS_CODES[context[IOPA.StatusCode]];
-     
+  
   // SETUP RESPONSE DEFAULTS
   var response = context.response;
 
@@ -275,81 +280,16 @@ function _parsePacket(packet, context) {
   response[COAP.Reset] = false;
   response[COAP.Confirmable] = false;    // default for piggy-backed responses
   response[IOPA.Token] = context[IOPA.Token];
-  response[COAP.Options] = undefined; // USE iopa.Headers instead
-  response[IOPA.Method] = response[IOPA.StatusCode];
+  response[COAP.Options] = null; // USE iopa.Headers instead
+  response[IOPA.Method] = null;
   /*  Object.defineProperty(response, IOPA.Method, {
        get: function() { return this[IOPA.StatusCode]; },
        enumerable: true,
        configurable: true
       }); */
 
-  if ('Observe' in context[IOPA.Headers])
-  {
-    response[IOPA.Body] = new iopaStream.OutgoingMultiSendStream();
-    response[IOPA.Body].on("data", _coapSendResponse.bind(this, context));
-
-  }
-  else
-  {
-    response[IOPA.Body] = new iopaStream.OutgoingMessageStream();
-    response[IOPA.Body].on("finish", _coapSendResponse.bind(this, context, context.response[IOPA.Body].toBuffer.bind(context.response[IOPA.Body])));
-  }
-  
-  response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
-
-}
-
-/**
- * Private method to send response packet
- * Triggered on data or finish events
- * 
- * @method _requestFromPacket
- * @object packet CoAP Raw Packet
- * @object ctx IOPA context dictionary
- * @private
- */
-function _coapSendResponse(context, payload) {
-   var response = context.response;
-   if (typeof payload == 'function')
-     payload = payload();
-  
-  if (!response[IOPA.MessageId])
-    response[IOPA.MessageId] = _nextMessageId();
-
-  var packet = {
-    code: response[IOPA.StatusCode],
-    confirmable: response[COAP.Confirmable],
-    reset: response[COAP.Reset],
-    ack: response[COAP.Ack],
-    messageId: response[IOPA.MessageId],
-    token: response[IOPA.Token],
-    payload: payload
-  };
-
-  var headers = response[IOPA.Headers];
-  var options = [];
-
-  for (var key in headers) {
-    if (key !== 'Content-Length' && headers.hasOwnProperty(key)) {
-      if (key == 'Content-Type')
-        key = 'Content-Format';
-
-      options.push({
-        name: key,
-        value: headers[key]
-      });
-
-
-    }
-  };
-
-  packet.options = options;
-
-  response[SERVER.Retry] = !(response[COAP.Ack] || response[COAP.Reset] || response[COAP.Confirmable] === false);
-  var buf = coapPacket.generate(packet);
-  response[SERVER.RawStream].write(buf);
-
-   response[IOPA.MessageId] = null;
+ response[IOPA.Body] = new iopaStream.OutgoingStream(); 
+ response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
 }
 
 /**

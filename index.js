@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-var Server = require('./src/server/coapPacketApplet.js');
+var Server = require('./src/middleware/iopaCoAP.js');
 module.exports = Server;

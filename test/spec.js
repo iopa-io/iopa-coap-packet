@@ -80,7 +80,7 @@ describe('#CoAP Server()', function() {
      it('should GET via CoAP', function(done) {  
         coapClient.create("/projector", "GET").send()
         .then(function(response) {
-           response["iopa.Method"].should.equal('2.05');
+           response["iopa.StatusCode"].should.equal('2.05');
            response["iopa.Body"].toString().should.equal('Hello World');
            done();     
            });   

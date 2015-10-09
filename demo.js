@@ -28,15 +28,18 @@ app.use(udp);
 app.use(coap);
 app.use(iopaMessageLogger);
 
-app.use(function(context, next){
-   context.log.info("[DEMO] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
-   
-   if (context["iopa.Method"] === "GET")
-   {
-      context.response["iopa.Body"].end("Hello World");
-   }
+app.use(function (context, next) {
+  context.log.info("[DEMO] SERVER CoAP DEMO " + context["iopa.Method"] + " " + context["iopa.Path"]);
 
-   return next();
+  if (context["iopa.Method"] === "GET") {
+    return context.response["iopa.Body"].endAsync("Hello World 1")
+    .then(function(){
+       return context["server.Capabilities"]["urn:io.iopa:coap"].observation(new Buffer("Hello World 2"))
+    })
+    .then(next);
+  } else
+    return next();
+
 });
     
 if (!process.env.PORT)
@@ -60,7 +63,7 @@ _server.listen(process.env.PORT, process.env.IP)
     return coapClient.create("/projector", "GET").send();
     })
    .then(function(response){
-       console.log("[DEMO] CoAP DEMO Response " + response["iopa.Method"] + " " + response["iopa.Body"].toString());
+       console.log("[DEMO] CoAP DEMO Response " + response["iopa.StatusCode"] + " " + response["iopa.Body"].toString());
        return _server.close().then(function(){return _clientSocket.close()});
     }).then(function(){
        console.log("Server Closed");
