@@ -162,7 +162,7 @@ function _invokeOnResponse(context, resolve, response) {
  * @object ctx IOPA context dictionary
  * @private
  */
-function IopaCoAP_observation(originalContext, buf) {
+function IopaCoAP_observation(originalContext, buf, observe) {
     var response = originalContext.create();
     response[SERVER.IsRequest] = false;
     response[COAP.Ack] = originalContext[COAP.Ack];
@@ -172,6 +172,8 @@ function IopaCoAP_observation(originalContext, buf) {
     response[IOPA.StatusCode] = '2.05';
     response[IOPA.ReasonPhrase] = COAP.STATUS_CODES[response[IOPA.StatusCode]];
     response[IOPA.Protocol] = originalContext[IOPA.Protocol];
+    if (observe)
+            response[IOPA.Headers]["Observe"] = observe;
     response[IOPA.Body].end(buf);
     return response.dispatch(true);
  };
