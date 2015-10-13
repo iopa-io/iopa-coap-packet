@@ -184,7 +184,7 @@ module.exports.writeContext = function coapFormat_writeContext(context) {
   context[SERVER.Retry] = !(context[COAP.Ack] || context[COAP.Reset] || context[COAP.Confirmable] === false);
 
   var buf = coapPacket.generate(packet);
-  context[SERVER.RawStream].write(buf);
+  context[SERVER.RawStream].write(buf, null, context[IOPA.Body].emit.bind(this, "sent"));
 };
 
 
